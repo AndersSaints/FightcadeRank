@@ -1,48 +1,87 @@
-# Fightcade KOF 2002 Rank
+# FightcadeRank
 
-A Windows application to view and track King of Fighters 2002 rankings from Fightcade.
+A desktop application for searching and viewing Fightcade KOF 2002 player rankings.
 
 ## Features
 
-- Modern, dark-themed GUI
-- User-friendly interface
-- Real-time ranking search
-- Pagination support
-- Error handling
-- Clean display of player rankings
+- Fast player search with caching
+- Disk-based cache persistence
+- Modern dark-themed UI
+- Loading animations and progress indicators
+- Status bar with cache information
+- Keyboard shortcuts
+- Structured logging
+- Rate limit handling
+- Error recovery
 
 ## Installation
 
-1. Make sure you have Python 3.8 or higher installed
-2. Install the required dependencies:
+1. Clone the repository:
+```bash
+git clone https://github.com/AndersSaints/FightcadeRank.git
+cd FightcadeRank
+```
+
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-## Running the Application
+## Usage
 
-Simply run the main.py file:
+Run the application:
 ```bash
 python main.py
 ```
 
-## Usage
+### Keyboard Shortcuts
 
-1. Launch the application
-2. Enter your Fightcade username
-3. Click "Login" to view rankings
-4. Use "Previous" and "Next" buttons to navigate through pages
-5. Click "Find Me" to refresh the rankings
+- `Enter`: Search for player
+- `Ctrl+F`: Focus search box
 
-## Dependencies
+### Configuration
 
-- customtkinter==5.2.0
-- requests==2.31.0
-- Pillow==10.0.0
-- python-dotenv==1.0.0
+Settings can be modified in `src/config.py`:
 
-## Notes
+- Cache duration
+- Search batch size
+- Rate limit delays
+- UI settings
+- Debug options
 
-- The application requires an internet connection to fetch ranking data
-- Rankings are fetched from the Fightcade API
-- The interface displays 10 results per page
+## Project Structure
+
+```
+FightcadeRank/
+├── main.py           # Application entry point
+├── requirements.txt  # Project dependencies
+├── src/             # Source code
+│   ├── __init__.py  # Package initialization
+│   ├── api.py       # Fightcade API client
+│   ├── cache.py     # Cache implementation
+│   ├── config.py    # Configuration settings
+│   ├── logger.py    # Logging setup
+│   └── ui.py        # User interface
+├── cache/           # Cache storage
+└── logs/            # Application logs
+```
+
+## Development
+
+The project uses:
+- `customtkinter` for the modern UI
+- `cloudscraper` for API requests
+- `structlog` for structured logging
+- `pydantic` for settings management
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.

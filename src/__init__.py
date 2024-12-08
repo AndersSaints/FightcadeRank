@@ -1,0 +1,3 @@
+"""
+FightcadeRank package initialization.
+"""
