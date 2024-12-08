@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     
     # Search Settings
     BATCH_SIZE: int = 100  # API batch size
-    MAX_SEARCH_OFFSET: int = 5000
+    MAX_SEARCH_OFFSET: int = 50000  # Increased to allow searching up to 500 pages deep
     
     # Rate Limiting
     RATE_LIMIT_DELAY: int = 1  # seconds
