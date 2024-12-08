@@ -115,3 +115,15 @@ class PlayerCache:
             'size_bytes': cache_size,
             'last_update': self.last_update
         }
+    
+    def clean_cache(self) -> None:
+        """Clear all cached data and remove the cache file."""
+        try:
+            if self.cache_file.exists():
+                self.cache_file.unlink()  # Delete the cache file
+            self.data = {}  # Clear the in-memory cache
+            self.last_update = 0
+            logger.info("Cache cleared successfully")
+        except Exception as e:
+            logger.error("Failed to clear cache", error=str(e))
+            raise

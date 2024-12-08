@@ -268,12 +268,23 @@ class FCRankApp(ctk.CTk):
         )
         self.get_rankings_button.grid(row=0, column=8, padx=5, pady=5)
         
+        # Clean Cache button
+        self.clean_cache_button = ctk.CTkButton(
+            header,
+            text="Clean Cache",
+            command=self.clean_cache,
+            width=100,
+            height=32
+        )
+        self.clean_cache_button.grid(row=0, column=9, padx=5, pady=5)
+        
         # Add tooltips
         self._add_tooltip(self.search_entry, "Enter player name to search")
         self._add_tooltip(self.clear_button, "Clear search (Esc)")
         self._add_tooltip(self.search_button, "Search for player (Enter)")
         self._add_tooltip(self.ranking_pages_entry, "Enter number of ranking pages to fetch (1-50)")
         self._add_tooltip(self.get_rankings_button, "Fetch rankings for specified number of pages")
+        self._add_tooltip(self.clean_cache_button, "Clear the player cache")
     
     def _create_content_frame(self):
         """Create the main content frame with results table."""
@@ -448,8 +459,27 @@ class FCRankApp(ctk.CTk):
         page_data = self.rankings_data[start_idx:start_idx + 15]
         
         for i, player in enumerate(page_data):
-            # Use the found_rank from search result instead of API rank
-            rank = player.get('found_rank', player.get('rank', 0))
+            # Get position in rankings
+            position = player.get('found_rank', player.get('rank', 0))
+            
+            # Create position label with fixed width
+            position_label = ctk.CTkLabel(self.results_frame, text=str(position), width=60)
+            position_label.grid(row=i, column=0, sticky="ew", padx=5, pady=2)
+            
+            # Get game info with proper fallbacks
+            game_info = player.get('gameinfo', {}).get('kof2002', {})
+            
+            # Get rank from game info for the rank image
+            api_rank = game_info.get('rank', 1)  # Default to 1 if not found
+            rank_image = self._load_rank_image(api_rank)
+            if rank_image:
+                elo_label = ctk.CTkLabel(self.results_frame, text="", image=rank_image, width=60)
+                elo_label.grid(row=i, column=1, sticky="ew", padx=5, pady=2)
+                self._add_tooltip(elo_label, f"Rank {api_rank}")
+            
+            # Create player name label with fixed width
+            name_label = ctk.CTkLabel(self.results_frame, text=player.get('name', ''), width=200)
+            name_label.grid(row=i, column=2, sticky="ew", padx=5, pady=2)
             
             # Extract country info
             country = player.get('country', {})
@@ -462,22 +492,6 @@ class FCRankApp(ctk.CTk):
             losses = game_info.get('losses', 0)
             time_played = round(game_info.get('time_played', 0) / 3600, 1)  # Convert to hours
             win_rate = (wins / matches) if matches > 0 else 0
-            
-            # Create rank label with fixed width
-            rank_label = ctk.CTkLabel(self.results_frame, text=str(rank), width=60)
-            rank_label.grid(row=i, column=0, sticky="ew", padx=5, pady=2)
-            
-            # Use binary search to determine rank based on position
-            determined_rank = self._determine_rank(rank)
-            rank_image = self._load_rank_image(determined_rank)
-            if rank_image:
-                elo_label = ctk.CTkLabel(self.results_frame, text="", image=rank_image, width=60)
-                elo_label.grid(row=i, column=1, sticky="ew", padx=5, pady=2)
-                self._add_tooltip(elo_label, f"Rank {determined_rank}")
-            
-            # Create player name label with fixed width
-            name_label = ctk.CTkLabel(self.results_frame, text=player.get('name', ''), width=200)
-            name_label.grid(row=i, column=2, sticky="ew", padx=5, pady=2)
             
             # Create country flag label with fixed width
             flag_label = ctk.CTkLabel(self.results_frame, text="", width=80)
@@ -497,7 +511,7 @@ class FCRankApp(ctk.CTk):
                 (str(losses), 80),
                 (f"{win_rate:.2%}", 100),
                 (str(time_played), 100),
-                (str((rank - 1) // 15 + 1), 60)  # Calculate which page the player is on
+                (str((position - 1) // 15 + 1), 60)  # Calculate which page the player is on
             ]
             
             for j, (text, width) in enumerate(stats, 4):
@@ -523,21 +537,10 @@ class FCRankApp(ctk.CTk):
     
     def _determine_rank(self, position: int) -> int:
         """
-        Determine rank based on player position using binary search logic.
-        
-        Rank 6: 0-15 players (first page)
-        Rank 5: 0-110 players (from first page to page 7 first half)
-        Rank 4: 105-1250 players (from page 7 second half to page 84)
-        Rank 3: 1245+ players (from page 84 onwards)
+        DEPRECATED: No longer used as rank is now taken directly from API response.
+        Previously used to determine rank based on player position.
         """
-        if position <= 15:  # First page
-            return 6
-        elif position <= 110:  # Up to page 7 first half
-            return 5
-        elif position <= 1250:  # Up to page 84
-            return 4
-        else:  # Page 84 onwards
-            return 3
+        return position
     
     def prev_page(self):
         """Go to previous page."""
@@ -664,7 +667,6 @@ class FCRankApp(ctk.CTk):
                         # Add rank to each player based on offset
                         for i, player in enumerate(page_data):
                             player['rank'] = api_offset + i + 1
-                            
                         rankings.extend(page_data)
                         
                         # Update display after each batch if we have data
@@ -706,3 +708,15 @@ class FCRankApp(ctk.CTk):
             
         except ValueError:
             self.show_error("Please enter a valid number")
+
+    def clean_cache(self):
+        """Clean the player cache."""
+        try:
+            self.api.cache.clean_cache()
+            self.update_progress("Cache cleared successfully")
+            # Update both the cache info and status bar
+            self._update_cache_info()
+            self.status_bar.update_status("Cache cleared successfully")
+        except Exception as e:
+            logger.error("clean_cache_error", error=str(e))
+            self.show_error(f"Failed to clear cache: {str(e)}")
