@@ -5,16 +5,17 @@ from typing import Dict, Tuple, Optional, Any, List
 import cloudscraper
 import time
 from .config import settings
-from .cache import PlayerCache
+from .cache import PlayerCache, ReplayCache
 from .logger import setup_logging
 
 logger = setup_logging()
 
 class FightcadeAPI:
     def __init__(self):
-        """Initialize the API client with cloudscraper and cache."""
-        self.cache = PlayerCache()
-        self.scraper = None
+        """Initialize the API client."""
+        self.scraper = cloudscraper.create_scraper()
+        self.player_cache = PlayerCache()
+        self.replay_cache = ReplayCache()
         self._init_delayed = False
     
     def _ensure_initialized(self):
@@ -139,7 +140,7 @@ class FightcadeAPI:
             update_progress("Player found, searching for ranking...")
             
             # Check cache first
-            cached_player, start_offset = self.cache.search_player(username)
+            cached_player, start_offset = self.player_cache.search_player(username)
             if cached_player:
                 update_progress(f"Found player in cache at rank {start_offset + 1}")
                 
@@ -176,7 +177,6 @@ class FightcadeAPI:
                     if response.get('res') != 'OK':
                         if 'rate' in str(response.get('error', '')).lower():
                             time.sleep(settings.RATE_LIMIT_DELAY)
-                            return None
                         return None
                     
                     players = response.get('results', {}).get('results', [])
@@ -184,7 +184,7 @@ class FightcadeAPI:
                         return None
                     
                     # Add to cache
-                    self.cache.add_players(players, start_offset)
+                    self.player_cache.add_players(players, start_offset)
                     
                     # Check this batch
                     for i, player in enumerate(players):
@@ -334,9 +334,6 @@ class FightcadeAPI:
         if max_replays is None:
             max_replays = settings.MAX_REPLAY_OFFSET
         
-        all_replays = []
-        search_complete = threading.Event()
-        
         def update_progress(message: str, username: str) -> None:
             """Update progress with logging."""
             if progress_callback:
@@ -345,8 +342,128 @@ class FightcadeAPI:
                        username=username,
                        message=message)
         
+        # Check if we have cached data
+        cached_data = self.replay_cache.get_player_replays(username)
+        if cached_data:
+            cached_replays = cached_data['replays']
+            cached_total = cached_data['total_matches']
+            cached_at = cached_data['cached_at']
+            
+            # Get current total matches to see if we need to fetch new ones
+            try:
+                response = self.get_player_info(username)
+                if response.get('res') != 'OK':
+                    logger.warning("Failed to get current player info, using cached data",
+                                username=username)
+                    return cached_replays[:max_replays]
+                
+                current_total = response.get('results', {}).get('num_matches', 0)
+                
+                # If no new matches, return cached data
+                if current_total <= cached_total:
+                    logger.info("Using cached replays - no new matches",
+                              username=username,
+                              cached_matches=cached_total,
+                              current_matches=current_total)
+                    return cached_replays[:max_replays]
+                
+                # We need to fetch only the new replays
+                new_matches = current_total - cached_total
+                logger.info("Fetching new replays",
+                          username=username,
+                          new_matches=new_matches,
+                          cached_matches=cached_total)
+                
+                # Fetch new replays
+                update_progress(f"Fetching {new_matches} new replays...", username)
+                new_replays = []
+                search_complete = threading.Event()
+                
+                def fetch_batch(start_offset: int, batch_number: int) -> Optional[List[Dict]]:
+                    if search_complete.is_set():
+                        return None
+                    
+                    try:
+                        response = self.get_player_replays(
+                            username,
+                            offset=start_offset,
+                            limit=settings.REPLAY_BATCH_SIZE
+                        )
+                        
+                        if response.get('res') != 'OK':
+                            if 'rate' in str(response.get('error', '')).lower():
+                                time.sleep(settings.RATE_LIMIT_DELAY)
+                            return None
+                        
+                        results = response.get('results', {}).get('results', [])
+                        if not results:
+                            search_complete.set()
+                            return None
+                        
+                        return results
+                        
+                    except Exception as e:
+                        logger.error("Batch fetch failed", 
+                                   batch=batch_number, 
+                                   error=str(e))
+                        return None
+                
+                # Calculate batches needed for new matches
+                total_batches = (new_matches + settings.REPLAY_BATCH_SIZE - 1) // settings.REPLAY_BATCH_SIZE
+                
+                with ThreadPoolExecutor(max_workers=5) as executor:
+                    futures = []
+                    for batch_num in range(total_batches):
+                        if search_complete.is_set():
+                            break
+                        
+                        start_offset = batch_num * settings.REPLAY_BATCH_SIZE
+                        if start_offset >= new_matches:
+                            break
+                            
+                        futures.append(
+                            executor.submit(fetch_batch, start_offset, batch_num)
+                        )
+                        time.sleep(settings.REQUEST_DELAY)
+                    
+                    for future in as_completed(futures):
+                        if search_complete.is_set():
+                            break
+                            
+                        result = future.result()
+                        if result:
+                            new_replays.extend(result)
+                            
+                            if len(new_replays) >= new_matches:
+                                search_complete.set()
+                                new_replays = new_replays[:new_matches]
+                                break
+                
+                # Combine new replays with cached ones
+                all_replays = new_replays + cached_replays
+                
+                # Update cache with combined replays
+                self.replay_cache.cache_player_replays(username, all_replays, current_total)
+                
+                logger.info("Combined replays",
+                          username=username,
+                          new_count=len(new_replays),
+                          total_count=len(all_replays))
+                
+                return all_replays[:max_replays]
+                
+            except Exception as e:
+                logger.error("Error checking for new replays",
+                           username=username,
+                           error=str(e))
+                return cached_replays[:max_replays]
+        
+        # No cached data, fetch all replays
+        update_progress("Fetching all replays...", username)
+        all_replays = []
+        search_complete = threading.Event()
+        
         def fetch_batch(start_offset: int, batch_number: int) -> Optional[List[Dict]]:
-            """Fetch a batch of replays."""
             if search_complete.is_set():
                 return None
                 
@@ -376,8 +493,14 @@ class FightcadeAPI:
                 return None
         
         try:
-            # Calculate number of batches needed
-            total_batches = (max_replays + settings.REPLAY_BATCH_SIZE - 1) // settings.REPLAY_BATCH_SIZE
+            # Get total matches for the player
+            response = self.get_player_info(username)
+            if response.get('res') != 'OK':
+                return []
+            
+            total_matches = response.get('results', {}).get('num_matches', 0)
+            total_batches = (min(total_matches, max_replays) + settings.REPLAY_BATCH_SIZE - 1) // settings.REPLAY_BATCH_SIZE
+            
             update_progress(f"Fetching {total_batches} batches of replays...", username)
             
             with ThreadPoolExecutor(max_workers=5) as executor:
@@ -393,9 +516,8 @@ class FightcadeAPI:
                     futures.append(
                         executor.submit(fetch_batch, start_offset, batch_num)
                     )
-                    time.sleep(settings.REQUEST_DELAY)  # Avoid rate limiting
+                    time.sleep(settings.REQUEST_DELAY)
                 
-                # Process results as they complete
                 for future in as_completed(futures):
                     if search_complete.is_set():
                         break
@@ -404,12 +526,15 @@ class FightcadeAPI:
                     if result:
                         all_replays.extend(result)
                         
-                        # Stop if we've reached the max replays
                         if len(all_replays) >= max_replays:
                             search_complete.set()
                             all_replays = all_replays[:max_replays]
                             break
-                            
+            
+            # Cache the fetched replays
+            if all_replays:
+                self.replay_cache.cache_player_replays(username, all_replays, total_matches)
+            
             logger.info("Replay fetch complete", 
                        username=username,
                        total_replays=len(all_replays))
@@ -491,11 +616,20 @@ class ReplayStats:
                 
                 # Only count ranked matches
                 if ranked_matches > 0:
-                    # Calculate the proportion of ranked matches
-                    ranked_ratio = ranked_matches / total_matches
-                    # Apply the ratio to the wins and losses
-                    self.wins += round(player_wins * ranked_ratio)
-                    self.losses += round(opponent_wins * ranked_ratio)
+                    # Calculate ranked wins and losses ensuring they sum to ranked_matches
+                    if total_matches == ranked_matches:
+                        # If all matches are ranked, use exact scores
+                        ranked_wins = player_wins
+                        ranked_losses = opponent_wins
+                    else:
+                        # Calculate proportional wins and losses
+                        ranked_ratio = ranked_matches / total_matches
+                        ranked_wins = round(player_wins * ranked_ratio)
+                        # Ensure total matches is correct by calculating losses as difference
+                        ranked_losses = ranked_matches - ranked_wins
+                    
+                    self.wins += ranked_wins
+                    self.losses += ranked_losses
                     self.total_matches += ranked_matches
                 
             except Exception as e:

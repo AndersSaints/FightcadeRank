@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     # Cache Settings
     CACHE_DURATION: int = 600  # 10 minutes in seconds
     CACHE_DIR: Path = Path("cache")
+    MAX_CACHED_PLAYERS: int = 50  # Maximum number of players to keep in replay cache
+    REPLAY_CACHE_FILE: str = "replays.json"  # File to store replay cache
     
     # Replay Settings
     REPLAY_BATCH_SIZE: int = 100  # Number of replays to fetch per batch
