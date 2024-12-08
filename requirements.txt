@@ -3,5 +3,6 @@ cloudscraper==1.2.71
 requests==2.31.0
 Pillow==10.0.0
 python-dotenv==1.0.0
-pydantic==2.5.2
+pydantic==2.10.3
+pydantic-settings==2.6.1
 structlog==23.2.0

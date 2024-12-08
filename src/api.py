@@ -40,11 +40,12 @@ class FightcadeAPI:
         try:
             response = self.scraper.get('https://www.fightcade.com/')
             response.raise_for_status()
-            logger.info("session_initialized", 
+            logger.info("Session initialized successfully", 
                        status_code=response.status_code)
             time.sleep(2)  # Give time for any JS to execute
         except Exception as e:
-            logger.error("session_init_error", error=str(e))
+            logger.error("Failed to initialize session", 
+                        error=str(e))
             raise
     
     def _make_request(self, data: Dict, max_retries: int = 3) -> Dict:
@@ -61,12 +62,12 @@ class FightcadeAPI:
             except Exception as e:
                 last_error = e
                 retry_count += 1
-                logger.warning("request_retry", 
+                logger.warning("Request retry attempt failed", 
                              attempt=retry_count, 
                              error=str(e))
                 time.sleep(settings.ERROR_DELAY)
         
-        logger.error("request_failed", 
+        logger.error("Request failed after maximum retries", 
                     max_retries=max_retries, 
                     final_error=str(last_error))
         raise last_error
@@ -78,7 +79,7 @@ class FightcadeAPI:
             "username": username
         }
         
-        logger.info("fetching_user", username=username)
+        logger.info("Fetching user information", username=username)
         return self._make_request(data)
     
     def search_rankings(self, offset: int = 0, limit: int = None) -> Dict:
@@ -95,7 +96,7 @@ class FightcadeAPI:
             "recent": True
         }
         
-        logger.info("searching_rankings", 
+        logger.info("Searching rankings", 
                    offset=offset, 
                    limit=limit)
         return self._make_request(data)
@@ -110,7 +111,7 @@ class FightcadeAPI:
             """Update progress with logging."""
             if progress_callback:
                 progress_callback(message)
-            logger.info("search_progress", message=message)
+            logger.info("Search progress update", message=message)
         
         try:
             # First check if player exists
@@ -169,7 +170,7 @@ class FightcadeAPI:
             return None, 0
             
         except Exception as e:
-            logger.error("search_error", 
+            logger.error("Search failed", 
                         player=player_name, 
                         error=str(e))
             raise

@@ -22,7 +22,7 @@ class LoadingSpinner(ctk.CTkFrame):
         
         # Create canvas for spinner
         self.canvas = ctk.CTkCanvas(self, width=30, height=30, 
-                                  bg=self._fg_color, highlightthickness=0)
+                                  bg=self._fg_color[1], highlightthickness=0)
         self.canvas.pack(expand=True, fill="both")
         
         # Draw initial spinner
@@ -90,7 +90,7 @@ class FCRankApp(ctk.CTk):
         self.geometry(f"{settings.WINDOW_SIZE[0]}x{settings.WINDOW_SIZE[1]}")
         self.minsize(*settings.MIN_WINDOW_SIZE)
         
-        # Set theme
+        # Set theme and styling
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
         
@@ -99,8 +99,15 @@ class FCRankApp(ctk.CTk):
         self.rankings_data = []
         self.current_page = 0
         self.total_players = 0
+        self.sort_column = None
+        self.sort_ascending = True
         
-        # Configure grid
+        # Load flag and rank images
+        self.flag_images = {}
+        self.rank_images = {}
+        self._load_images()
+        
+        # Configure grid with better responsiveness
         self.grid_columnconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
         
@@ -115,85 +122,164 @@ class FCRankApp(ctk.CTk):
         # Set up keyboard shortcuts
         self.bind('<Return>', lambda e: self.search_player())
         self.bind('<Control-f>', lambda e: self.search_entry.focus())
+        self.bind('<Escape>', lambda e: self.clear_search())
         
         # Update cache info
         self._update_cache_info()
         
         logger.info("ui_initialized")
     
+    def _load_images(self):
+        """Load flag and rank images."""
+        flags_dir = Path("flags")
+        rank_dir = Path("rank")
+        
+        # Load flag images
+        for flag_file in flags_dir.glob("*.png"):
+            if not flag_file.name.startswith("._"):  # Skip macOS metadata files
+                try:
+                    img = Image.open(flag_file)
+                    img = img.resize((24, 16), Image.Resampling.LANCZOS)
+                    photo = ImageTk.PhotoImage(img)
+                    self.flag_images[flag_file.stem.lower()] = photo
+                except Exception as e:
+                    logger.error(f"Failed to load flag: {flag_file.name}", error=str(e))
+        
+        # Load rank images
+        for rank_file in rank_dir.glob("rank*.png"):
+            try:
+                img = Image.open(rank_file)
+                img = img.resize((24, 24), Image.Resampling.LANCZOS)
+                photo = ImageTk.PhotoImage(img)
+                rank_num = int(rank_file.stem[4:])  # Extract number from 'rank1.png'
+                self.rank_images[rank_num] = photo
+            except Exception as e:
+                logger.error(f"Failed to load rank: {rank_file.name}", error=str(e))
+    
     def _create_header_frame(self):
         """Create the header frame with search controls."""
         header = ctk.CTkFrame(self)
         header.grid(row=0, column=0, sticky="ew", padx=10, pady=5)
+        header.grid_columnconfigure(1, weight=1)  # Make search entry expand
         
-        # Search entry
-        self.search_entry = ctk.CTkEntry(
-            header, 
-            placeholder_text="Enter player name...",
-            width=200
+        # Search label
+        search_label = ctk.CTkLabel(
+            header,
+            text="Player Search:",
+            font=("Helvetica", 12, "bold")
         )
-        self.search_entry.pack(side="left", padx=5)
+        search_label.grid(row=0, column=0, padx=(5, 0), pady=5)
         
-        # Search button
+        # Search entry with better styling
+        self.search_entry = ctk.CTkEntry(
+            header,
+            placeholder_text="Enter player name...",
+            width=300,
+            height=32
+        )
+        self.search_entry.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+        
+        # Clear button
+        self.clear_button = ctk.CTkButton(
+            header,
+            text="Clear",
+            command=self.clear_search,
+            width=60,
+            height=32
+        )
+        self.clear_button.grid(row=0, column=2, padx=5, pady=5)
+        
+        # Search button with icon
         self.search_button = ctk.CTkButton(
             header,
             text="Search",
-            command=self.search_player
+            command=self.search_player,
+            width=80,
+            height=32
         )
-        self.search_button.pack(side="left", padx=5)
+        self.search_button.grid(row=0, column=3, padx=5, pady=5)
         
         # Loading spinner
         self.spinner = LoadingSpinner(header)
-        self.spinner.pack(side="left", padx=5)
+        self.spinner.grid(row=0, column=4, padx=5, pady=5)
         
-        # Progress label
-        self.progress_label = ctk.CTkLabel(header, text="")
-        self.progress_label.pack(side="left", padx=5)
+        # Add tooltips
+        self._add_tooltip(self.search_entry, "Enter player name to search")
+        self._add_tooltip(self.clear_button, "Clear search (Esc)")
+        self._add_tooltip(self.search_button, "Search for player (Enter)")
     
     def _create_content_frame(self):
         """Create the main content frame with results table."""
         content = ctk.CTkFrame(self)
         content.grid(row=1, column=0, sticky="nsew", padx=10, pady=5)
-        
-        # Configure grid
         content.grid_columnconfigure(0, weight=1)
         content.grid_rowconfigure(1, weight=1)
         
-        # Headers
-        headers = ["Rank", "Player", "Country", "Matches", "Wins", "Losses", "Time Played"]
-        for i, header in enumerate(headers):
-            label = ctk.CTkLabel(content, text=header, font=("Arial", 12, "bold"))
-            label.grid(row=0, column=i, sticky="ew", padx=5, pady=5)
+        # Table headers with sorting
+        headers = [
+            ("Rank", "rank"),
+            ("ELO", "elo"),
+            ("Player", "name"),
+            ("Country", "country"),
+            ("Matches", "matches"),
+            ("Wins", "wins"),
+            ("Losses", "losses"),
+            ("Win Rate", "winrate"),
+            ("Time (hrs)", "time")
+        ]
+        
+        header_frame = ctk.CTkFrame(content)
+        header_frame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+        
+        for i, (header, key) in enumerate(headers):
+            frame = ctk.CTkFrame(header_frame)
+            frame.grid(row=0, column=i, sticky="ew", padx=2)
+            frame.grid_columnconfigure(0, weight=1)
+            
+            label = ctk.CTkLabel(
+                frame,
+                text=header,
+                font=("Helvetica", 12, "bold"),
+                cursor="hand2"
+            )
+            label.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
+            label.bind("<Button-1>", lambda e, k=key: self._sort_rankings(k))
+            
+            self._add_tooltip(label, f"Click to sort by {header}")
         
         # Results frame with scrollbar
         self.results_frame = ctk.CTkScrollableFrame(content)
-        self.results_frame.grid(row=1, column=0, columnspan=len(headers), 
-                              sticky="nsew", padx=5, pady=5)
+        self.results_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
         
         # Navigation frame
         nav_frame = ctk.CTkFrame(content)
-        nav_frame.grid(row=2, column=0, columnspan=len(headers), 
-                      sticky="ew", padx=5, pady=5)
+        nav_frame.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
         
         # Previous page button
         self.prev_button = ctk.CTkButton(
             nav_frame,
-            text="Previous",
+            text="◀ Previous",
             command=self.prev_page,
-            state="disabled"
+            state="disabled",
+            width=100
         )
         self.prev_button.pack(side="left", padx=5)
         
         # Page info
-        self.page_label = ctk.CTkLabel(nav_frame, text="Page 0 of 0")
-        self.page_label.pack(side="left", padx=5)
+        self.page_label = ctk.CTkLabel(
+            nav_frame,
+            text="Page 0 of 0",
+            font=("Helvetica", 12)
+        )
+        self.page_label.pack(side="left", padx=20)
         
         # Next page button
         self.next_button = ctk.CTkButton(
             nav_frame,
-            text="Next",
+            text="Next ▶",
             command=self.next_page,
-            state="disabled"
+            state="disabled",
+            width=100
         )
         self.next_button.pack(side="left", padx=5)
     
@@ -233,15 +319,19 @@ class FCRankApp(ctk.CTk):
         def search_task():
             """Search task to run in separate thread."""
             try:
-                player, rank = self.api.search_player(
+                player, offset = self.api.search_player(
                     username,
                     lambda msg: self.after(0, self.update_progress, msg)
                 )
                 
                 if player:
+                    # Calculate actual rank (offset + 1)
+                    actual_rank = offset + 1
+                    player['found_rank'] = actual_rank
                     self.rankings_data = [player]
                     self.current_page = 0
                     self.after(0, self.display_rankings)
+                    self.after(0, lambda: self.update_progress("Found player"))
                 
             except Exception as e:
                 logger.error("search_error", error=str(e))
@@ -273,19 +363,63 @@ class FCRankApp(ctk.CTk):
         start_idx = self.current_page * settings.PAGE_SIZE
         page_data = self.rankings_data[start_idx:start_idx + settings.PAGE_SIZE]
         
-        for i, player in enumerate(page_data):
-            rank = start_idx + i + 1
-            row = [
-                str(rank),
-                player.get('name', ''),
-                player.get('country', ''),
-                str(player.get('gameinfo', {}).get('kof2002', {}).get('num_matches', 0)),
-                str(player.get('gameinfo', {}).get('kof2002', {}).get('wins', 0)),
-                str(player.get('gameinfo', {}).get('kof2002', {}).get('losses', 0)),
-                str(player.get('gameinfo', {}).get('kof2002', {}).get('time_played', 0))
+        # Create headers
+        headers = ["Rank", "ELO", "Player", "Country", "Matches", "Wins", "Losses", "Win Rate", "Time (hrs)"]
+        for j, text in enumerate(headers):
+            label = ctk.CTkLabel(self.results_frame, text=text, font=("Helvetica", 12, "bold"))
+            label.grid(row=0, column=j, sticky="ew", padx=5, pady=5)
+        
+        for i, player in enumerate(page_data, 1):
+            # Use the found_rank from search result instead of API rank
+            rank = player.get('found_rank', player.get('rank', 0))
+            
+            # Extract country info
+            country = player.get('country', {})
+            country_code = country.get('iso_code', '').lower() if isinstance(country, dict) else ''
+            
+            # Get game info with proper fallbacks
+            game_info = player.get('gameinfo', {}).get('kof2002', {})
+            matches = game_info.get('num_matches', 0)
+            wins = game_info.get('wins', 0)
+            losses = game_info.get('losses', 0)
+            time_played = round(game_info.get('time_played', 0) / 3600, 1)  # Convert to hours
+            win_rate = (wins / matches) if matches > 0 else 0
+            
+            # Create rank label
+            rank_label = ctk.CTkLabel(self.results_frame, text=str(rank))
+            rank_label.grid(row=i, column=0, sticky="ew", padx=5, pady=2)
+            
+            # Create ELO rank image label
+            elo_rank = min(6, max(1, (rank // 100) + 1))  # Convert rank to ELO tier (1-6)
+            if elo_rank in self.rank_images:
+                elo_label = ctk.CTkLabel(self.results_frame, text="", image=self.rank_images[elo_rank])
+                elo_label.grid(row=i, column=1, sticky="ew", padx=5, pady=2)
+                self._add_tooltip(elo_label, f"Rank Tier {elo_rank}")
+            
+            # Create player name label
+            name_label = ctk.CTkLabel(self.results_frame, text=player.get('name', ''))
+            name_label.grid(row=i, column=2, sticky="ew", padx=5, pady=2)
+            
+            # Create country flag label
+            if country_code in self.flag_images:
+                flag_label = ctk.CTkLabel(self.results_frame, text="", image=self.flag_images[country_code])
+                flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
+                self._add_tooltip(flag_label, country.get('name', country_code.upper()))
+            else:
+                # Fallback to text if flag not found
+                flag_label = ctk.CTkLabel(self.results_frame, text=country_code.upper())
+                flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
+            
+            # Add remaining stats
+            stats = [
+                str(matches),
+                str(wins),
+                str(losses),
+                f"{win_rate:.2%}",
+                str(time_played)
             ]
             
-            for j, text in enumerate(row):
+            for j, text in enumerate(stats, 4):
                 label = ctk.CTkLabel(self.results_frame, text=text)
                 label.grid(row=i, column=j, sticky="ew", padx=5, pady=2)
         
@@ -321,11 +455,100 @@ class FCRankApp(ctk.CTk):
     
     def update_progress(self, message: str):
         """Update progress message and status bar."""
-        self.progress_label.configure(text=message)
         self.status_bar.update_status(message)
     
     def show_error(self, message: str):
         """Show error message."""
-        self.progress_label.configure(text=f"Error: {message}")
         self.status_bar.update_status(f"Error: {message}")
         logger.error("error_displayed", message=message)
+
+    def clear_search(self):
+        """Clear search entry and results."""
+        self.search_entry.delete(0, 'end')
+        self.search_entry.focus()
+        self.rankings_data = []
+        self.current_page = 0
+        self.display_rankings()
+        self.update_progress("")
+    
+    def _sort_rankings(self, key):
+        """Sort rankings by the specified key."""
+        if not self.rankings_data:
+            return
+            
+        if self.sort_column == key:
+            self.sort_ascending = not self.sort_ascending
+        else:
+            self.sort_column = key
+            self.sort_ascending = True
+        
+        def get_sort_key(player):
+            if key == 'rank':
+                return int(player.get('rank', 0))
+            elif key == 'name':
+                return player.get('name', '').lower()
+            elif key == 'country':
+                country = player.get('country', {})
+                return country.get('iso_code', '') if isinstance(country, dict) else ''
+            elif key in ['matches', 'wins', 'losses']:
+                return int(player.get('gameinfo', {}).get('kof2002', {}).get(key, 0))
+            elif key == 'winrate':
+                game_info = player.get('gameinfo', {}).get('kof2002', {})
+                wins = game_info.get('wins', 0)
+                matches = game_info.get('num_matches', 0)
+                return (wins / matches) if matches > 0 else 0
+            elif key == 'time':
+                return float(player.get('gameinfo', {}).get('kof2002', {}).get('time_played', 0))
+            return 0
+        
+        self.rankings_data.sort(
+            key=get_sort_key,
+            reverse=not self.sort_ascending
+        )
+        self.display_rankings()
+    
+    def _add_tooltip(self, widget, text):
+        """Add tooltip to widget."""
+        tooltip_timer = None
+        
+        def show_tooltip(event):
+            nonlocal tooltip_timer
+            # Cancel any existing timer
+            if tooltip_timer:
+                widget.after_cancel(tooltip_timer)
+            # Start new timer for 500ms delay
+            tooltip_timer = widget.after(500, lambda: create_tooltip(event))
+        
+        def create_tooltip(event):
+            tooltip = ctk.CTkToplevel()
+            tooltip.wm_overrideredirect(True)
+            tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
+            
+            label = ctk.CTkLabel(
+                tooltip,
+                text=text,
+                font=("Helvetica", 11),
+                fg_color=("gray80", "gray20"),
+                corner_radius=6
+            )
+            label.pack(padx=5, pady=5)
+            
+            def hide_tooltip():
+                tooltip.destroy()
+            
+            widget._tooltip = tooltip
+            widget.after(2000, hide_tooltip)
+        
+        def hide_tooltip(event):
+            nonlocal tooltip_timer
+            # Cancel pending tooltip
+            if tooltip_timer:
+                widget.after_cancel(tooltip_timer)
+                tooltip_timer = None
+            # Destroy existing tooltip
+            if hasattr(widget, '_tooltip'):
+                widget._tooltip.destroy()
+                del widget._tooltip
+        
+        widget.bind('<Enter>', show_tooltip)
+        widget.bind('<Leave>', hide_tooltip)

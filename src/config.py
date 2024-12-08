@@ -1,8 +1,8 @@
 """
 Configuration settings for the FightcadeRank application.
 """
-from pydantic import BaseSettings
-from typing import Dict, Any
+from pydantic_settings import BaseSettings
+from typing import Dict, Any, Tuple
 import os
 from pathlib import Path
 
@@ -26,9 +26,39 @@ class Settings(BaseSettings):
     REQUEST_DELAY: int = 3  # seconds
     
     # UI Settings
-    WINDOW_SIZE: tuple = (1200, 800)
-    MIN_WINDOW_SIZE: tuple = (1000, 600)
+    WINDOW_SIZE: Tuple[int, int] = (1200, 800)
+    MIN_WINDOW_SIZE: Tuple[int, int] = (1000, 600)
     PAGE_SIZE: int = 15
+    TOOLTIP_DELAY: int = 2000  # milliseconds
+    
+    # Table Column Widths
+    COLUMN_WIDTHS: Dict[str, int] = {
+        "rank": 80,
+        "name": 200,
+        "country": 100,
+        "matches": 100,
+        "wins": 80,
+        "losses": 80,
+        "winrate": 100,
+        "time": 100
+    }
+    
+    # Theme Colors
+    COLORS: Dict[str, Dict[str, str]] = {
+        "header": {
+            "bg": "#2b2b2b",
+            "fg": "#ffffff"
+        },
+        "row": {
+            "bg": "#1e1e1e",
+            "alt_bg": "#252525",
+            "fg": "#e0e0e0"
+        },
+        "highlight": {
+            "bg": "#3a3a3a",
+            "fg": "#ffffff"
+        }
+    }
     
     # Debug Settings
     DEBUG: bool = True
