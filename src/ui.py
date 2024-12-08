@@ -467,12 +467,13 @@ class FCRankApp(ctk.CTk):
             rank_label = ctk.CTkLabel(self.results_frame, text=str(rank), width=60)
             rank_label.grid(row=i, column=0, sticky="ew", padx=5, pady=2)
             
-            # Create ELO rank image label with fixed width
-            rank_image = self._load_rank_image(game_info.get('rank', 0))
+            # Use binary search to determine rank based on position
+            determined_rank = self._determine_rank(rank)
+            rank_image = self._load_rank_image(determined_rank)
             if rank_image:
                 elo_label = ctk.CTkLabel(self.results_frame, text="", image=rank_image, width=60)
                 elo_label.grid(row=i, column=1, sticky="ew", padx=5, pady=2)
-                self._add_tooltip(elo_label, f"Rank {game_info.get('rank', 0)}")
+                self._add_tooltip(elo_label, f"Rank {determined_rank}")
             
             # Create player name label with fixed width
             name_label = ctk.CTkLabel(self.results_frame, text=player.get('name', ''), width=200)
@@ -519,6 +520,24 @@ class FCRankApp(ctk.CTk):
         logger.info("rankings_displayed", 
                    page=self.current_page + 1, 
                    total_pages=total_pages)
+    
+    def _determine_rank(self, position: int) -> int:
+        """
+        Determine rank based on player position using binary search logic.
+        
+        Rank 6: 0-15 players (first page)
+        Rank 5: 0-110 players (from first page to page 7 first half)
+        Rank 4: 105-1250 players (from page 7 second half to page 84)
+        Rank 3: 1245+ players (from page 84 onwards)
+        """
+        if position <= 15:  # First page
+            return 6
+        elif position <= 110:  # Up to page 7 first half
+            return 5
+        elif position <= 1250:  # Up to page 84
+            return 4
+        else:  # Page 84 onwards
+            return 3
     
     def prev_page(self):
         """Go to previous page."""
