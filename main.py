@@ -30,8 +30,141 @@ class FightcadeAPI:
         })
         
         self.base_url = 'https://www.fightcade.com/api/'
+        
+        # Initialize cache
+        self.rankings_cache = {
+            'timestamp': None,
+            'data': [],
+            'last_offset': 0
+        }
+        self.cache_duration = 600  # 10 minutes in seconds
         self._init_session()
-    
+
+    def _is_cache_valid(self):
+        """Check if cache is valid (less than 10 minutes old)"""
+        if not self.rankings_cache['timestamp']:
+            return False
+        
+        elapsed_time = time.time() - self.rankings_cache['timestamp']
+        return elapsed_time < self.cache_duration
+
+    def _add_to_cache(self, players, offset):
+        """Add players to cache and update last offset"""
+        if not self._is_cache_valid():
+            # If cache is expired, clear it
+            print("Cache expired, clearing...")
+            self.rankings_cache['data'] = []
+            self.rankings_cache['timestamp'] = time.time()
+            self.rankings_cache['last_offset'] = 0
+        
+        # Add new players to cache
+        print(f"Adding {len(players)} players to cache at offset {offset}")
+        # Only add players that aren't already in cache
+        existing_names = {p.get('name', '').lower() for p in self.rankings_cache['data']}
+        new_players = [p for p in players if p.get('name', '').lower() not in existing_names]
+        
+        if new_players:
+            self.rankings_cache['data'].extend(new_players)
+            self.rankings_cache['last_offset'] = max(self.rankings_cache['last_offset'], offset + len(players))
+            print(f"Cache now contains {len(self.rankings_cache['data'])} players")
+        else:
+            print("No new players to add to cache")
+
+    def _search_cache(self, player_name):
+        """Search for player in cache"""
+        if not self._is_cache_valid():
+            print("Cache is invalid or empty")
+            return None, 0
+        
+        target = player_name.lower()
+        print(f"Searching cache containing {len(self.rankings_cache['data'])} players")
+        for i, player in enumerate(self.rankings_cache['data']):
+            if player.get('name', '').lower() == target:
+                print(f"Player found in cache at position {i}")
+                return player, i
+        
+        print(f"Player not found in cache, last offset is {self.rankings_cache['last_offset']}")
+        return None, self.rankings_cache['last_offset']
+
+    def search_player(self, player_name, progress_callback=None):
+        """Search for a player using cache and API calls"""
+        if not player_name:
+            raise ValueError("Player name cannot be empty")
+        
+        def update_progress(message):
+            if progress_callback:
+                progress_callback(message)
+            print(message)
+        
+        update_progress("Checking if player exists...")
+        
+        try:
+            # First check if the player exists
+            user_data = self.get_user(player_name)
+            if user_data.get('res') != 'OK':
+                update_progress("Player not found")
+                return None, 0
+            
+            update_progress("Player found, searching for ranking...")
+            
+            # Check if we have a valid cache
+            if self._is_cache_valid():
+                update_progress(f"Checking cache ({len(self.rankings_cache['data'])} players)...")
+                cached_player, start_offset = self._search_cache(player_name)
+                if cached_player:
+                    update_progress(f"Found player in cache at rank {start_offset + 1}")
+                    return cached_player, start_offset
+                update_progress("Player not in cache, continuing from last cached position...")
+            else:
+                update_progress("Cache empty or expired, starting fresh search...")
+                start_offset = 0
+            
+            # Start searching from either beginning or last cached position
+            offset = start_offset
+            batch_size = 100
+            max_offset = 5000
+            
+            while offset < max_offset:
+                update_progress(f"Checking ranks {offset}-{offset+batch_size}...")
+                
+                try:
+                    response = self.search_rankings(offset, batch_size)
+                    if response.get('res') != 'OK':
+                        if 'rate' in str(response.get('error', '')).lower():
+                            update_progress("Rate limited, waiting 30 seconds...")
+                            time.sleep(30)
+                            continue
+                        break
+                    
+                    players = response.get('results', {}).get('results', [])
+                    if not players:
+                        break
+                    
+                    # Add to cache
+                    self._add_to_cache(players, offset)
+                    
+                    # Check this batch
+                    for i, player in enumerate(players):
+                        if player.get('name', '').lower() == player_name.lower():
+                            rank = offset + i + 1
+                            update_progress(f"Found player at rank {rank}")
+                            return player, offset + i
+                    
+                    offset += batch_size
+                    time.sleep(3)  # Basic 3-second delay between requests
+                    
+                except Exception as e:
+                    update_progress(f"Error during search: {str(e)}")
+                    time.sleep(10)  # Wait 10 seconds on error
+                    continue
+            
+            update_progress("Player not found in rankings")
+            return None, 0
+            
+        except Exception as e:
+            update_progress(f"Search error: {str(e)}")
+            raise
+
     def _init_session(self):
         """Initialize session by visiting the main page first"""
         try:
@@ -101,68 +234,83 @@ class FightcadeAPI:
         return self._make_request(data)
 
     def search_player(self, player_name, progress_callback=None):
+        """Search for a player using cache and API calls"""
         if not player_name:
             raise ValueError("Player name cannot be empty")
-
-        try:
-            total_players = self.get_total_players()
+        
+        def update_progress(message):
             if progress_callback:
-                progress_callback(f"Searching through {total_players} players...")
-
-            page = 0
-            limit = 15
-            max_retries = 3
-            
-            while page * limit < total_players:
-                if progress_callback:
-                    progress_callback(f"Searching page {page + 1}...")
-
-                retry_count = 0
-                while retry_count < max_retries:
-                    try:
-                        response = self.search_rankings(page * limit, limit)
-                        if response.get('res') != 'OK':
-                            raise Exception(f"API Error: {response.get('error', 'Unknown error')}")
-
-                        players = response.get('results', {}).get('items', [])
-                        for player in players:
-                            if player.get('name', '').lower() == player_name.lower():
-                                return {
-                                    'name': player.get('name'),
-                                    'rank': player.get('rank'),
-                                    'elo': player.get('elo'),
-                                    'wins': player.get('wins'),
-                                    'losses': player.get('losses'),
-                                    'country': player.get('country'),
-                                    'total_games': player.get('wins', 0) + player.get('losses', 0),
-                                    'page': page + 1,
-                                    'total_pages': (total_players + limit - 1) // limit
-                                }
-                        break  # Success, move to next page
-                        
-                    except Exception as e:
-                        retry_count += 1
-                        if retry_count == max_retries:
-                            raise Exception(f"Error on page {page + 1}: {str(e)}")
-                        time.sleep(2 * retry_count)
-                        self._init_session()  # Create new scraper instance for retry
-
-                page += 1
-                time.sleep(0.5)  # Add delay between pages to prevent rate limiting
-
-            return None
-        except Exception as e:
-            raise Exception(f"Error searching for player: {str(e)}")
-
-    def get_total_players(self):
+                progress_callback(message)
+            print(message)
+        
+        update_progress("Checking if player exists...")
+        
         try:
-            response = self.search_rankings(0, 1)
-            if response and response.get('res') == 'OK':
-                return response.get('results', {}).get('total', 0)
-            return 0
+            # First check if the player exists
+            user_data = self.get_user(player_name)
+            if user_data.get('res') != 'OK':
+                update_progress("Player not found")
+                return None, 0
+            
+            update_progress("Player found, searching for ranking...")
+            
+            # Check if we have a valid cache
+            if self._is_cache_valid():
+                update_progress(f"Checking cache ({len(self.rankings_cache['data'])} players)...")
+                cached_player, start_offset = self._search_cache(player_name)
+                if cached_player:
+                    update_progress(f"Found player in cache at rank {start_offset + 1}")
+                    return cached_player, start_offset
+                update_progress("Player not in cache, continuing from last cached position...")
+            else:
+                update_progress("Cache empty or expired, starting fresh search...")
+                start_offset = 0
+            
+            # Start searching from either beginning or last cached position
+            offset = start_offset
+            batch_size = 100
+            max_offset = 5000
+            
+            while offset < max_offset:
+                update_progress(f"Checking ranks {offset}-{offset+batch_size}...")
+                
+                try:
+                    response = self.search_rankings(offset, batch_size)
+                    if response.get('res') != 'OK':
+                        if 'rate' in str(response.get('error', '')).lower():
+                            update_progress("Rate limited, waiting 30 seconds...")
+                            time.sleep(30)
+                            continue
+                        break
+                    
+                    players = response.get('results', {}).get('results', [])
+                    if not players:
+                        break
+                    
+                    # Add to cache
+                    self._add_to_cache(players, offset)
+                    
+                    # Check this batch
+                    for i, player in enumerate(players):
+                        if player.get('name', '').lower() == player_name.lower():
+                            rank = offset + i + 1
+                            update_progress(f"Found player at rank {rank}")
+                            return player, offset + i
+                    
+                    offset += batch_size
+                    time.sleep(3)  # Basic 3-second delay between requests
+                    
+                except Exception as e:
+                    update_progress(f"Error during search: {str(e)}")
+                    time.sleep(10)  # Wait 10 seconds on error
+                    continue
+            
+            update_progress("Player not found in rankings")
+            return None, 0
+            
         except Exception as e:
-            print(f"Error getting total players: {str(e)}")
-            return 0
+            update_progress(f"Search error: {str(e)}")
+            raise
 
     def search_user(self, username):
         data = {
@@ -467,7 +615,7 @@ class FCRankApp(ctk.CTk):
                     return
                 
                 def search_in_rankings(offset=0, limit=100):
-                    self.progress_label.configure(text=f"Searching page {(offset//limit) + 1}...")
+                    self.progress_label.configure(text="Searching...")
                     
                     # Get rankings for current page
                     rank_data = {
