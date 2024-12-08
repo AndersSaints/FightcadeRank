@@ -23,13 +23,13 @@ class Settings(BaseSettings):
     # Rate Limiting
     RATE_LIMIT_DELAY: int = 30  # seconds
     ERROR_DELAY: int = 10  # seconds
-    REQUEST_DELAY: int = 3  # seconds
+    REQUEST_DELAY: int = 1  # seconds
     
     # UI Settings
     WINDOW_SIZE: Tuple[int, int] = (1200, 800)
     MIN_WINDOW_SIZE: Tuple[int, int] = (1000, 600)
     PAGE_SIZE: int = 15
-    TOOLTIP_DELAY: int = 2000  # milliseconds
+    TOOLTIP_DELAY: int = 500  # milliseconds
     
     # Table Column Widths
     COLUMN_WIDTHS: Dict[str, int] = {
@@ -67,10 +67,14 @@ class Settings(BaseSettings):
     
     # Browser Headers
     BROWSER_HEADERS: Dict[str, str] = {
-        "Accept": "application/json, text/plain, */*",
-        "Content-Type": "application/json;charset=UTF-8",
-        "Origin": "https://www.fightcade.com",
-        "Referer": "https://www.fightcade.com/",
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
+        'Pragma': 'no-cache',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
     }
     
     def __init__(self, **data: Any):

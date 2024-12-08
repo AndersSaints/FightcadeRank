@@ -13,9 +13,16 @@ logger = setup_logging()
 class FightcadeAPI:
     def __init__(self):
         """Initialize the API client with cloudscraper and cache."""
-        self.scraper = self._init_scraper()
         self.cache = PlayerCache()
-        self._init_session()
+        self.scraper = None
+        self._init_delayed = False
+    
+    def _ensure_initialized(self):
+        """Ensure API is initialized before making requests."""
+        if not self._init_delayed:
+            self.scraper = self._init_scraper()
+            self._init_session()
+            self._init_delayed = True
     
     def _init_scraper(self) -> cloudscraper.CloudScraper:
         """Initialize cloudscraper with robust settings."""
@@ -42,14 +49,14 @@ class FightcadeAPI:
             response.raise_for_status()
             logger.info("Session initialized successfully", 
                        status_code=response.status_code)
-            time.sleep(2)  # Give time for any JS to execute
         except Exception as e:
             logger.error("Failed to initialize session", 
                         error=str(e))
             raise
     
     def _make_request(self, data: Dict, max_retries: int = 3) -> Dict:
-        """Make an API request with retry logic."""
+        """Make a request to the Fightcade API with retries."""
+        self._ensure_initialized()  # Initialize only when needed
         retry_count = 0
         last_error = None
         
@@ -104,6 +111,7 @@ class FightcadeAPI:
     def search_player(self, player_name: str, 
                      progress_callback: Optional[callable] = None) -> Tuple[Optional[Dict], int]:
         """Search for a player using cache and API calls."""
+        self._ensure_initialized()  # Initialize only when needed
         if not player_name:
             raise ValueError("Player name cannot be empty")
         

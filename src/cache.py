@@ -1,7 +1,7 @@
 """
 Cache implementation for storing player data.
 """
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, Any
 import json
 import time
 from pathlib import Path
@@ -12,104 +12,106 @@ logger = setup_logging()
 
 class PlayerCache:
     def __init__(self):
-        """Initialize the cache with disk storage support."""
-        self.cache_file = settings.CACHE_DIR / "player_cache.json"
-        self.rankings_cache = {
-            'timestamp': None,
-            'data': [],
-            'last_offset': 0
-        }
-        self._load_cache()
+        """Initialize the cache with lazy loading."""
+        self.cache_file = settings.CACHE_DIR / "players.json"
+        self.last_update = 0
+        self.data = {}
+        self._ensure_cache_dir()
     
-    def _load_cache(self) -> None:
-        """Load cache from disk if it exists."""
-        try:
-            if self.cache_file.exists():
-                with open(self.cache_file, 'r') as f:
-                    data = json.load(f)
-                    if self._is_cache_valid(data.get('timestamp')):
-                        self.rankings_cache = data
-                        logger.info("cache_loaded", 
-                                  players_count=len(data['data']), 
-                                  last_offset=data['last_offset'])
-                    else:
-                        logger.info("cache_expired", 
-                                  cache_age=time.time() - (data.get('timestamp') or 0))
-        except Exception as e:
-            logger.error("cache_load_error", error=str(e))
+    def _ensure_cache_dir(self):
+        """Ensure cache directory exists."""
+        settings.CACHE_DIR.mkdir(exist_ok=True)
+    
+    def _load_cache(self):
+        """Load cache data from file if needed."""
+        if not self.data and self.cache_file.exists():
+            try:
+                with open(self.cache_file, 'r', encoding='utf-8') as f:
+                    cache_data = json.load(f)
+                    self.data = cache_data.get('data', {})
+                    self.last_update = cache_data.get('timestamp', 0)
+            except Exception as e:
+                logger.error("Failed to load cache", error=str(e))
+                self.data = {}
+                self.last_update = 0
+    
+    def get(self, key: str) -> Optional[Dict]:
+        """Get a value from the cache."""
+        self._load_cache()
+        if not self.is_valid():
+            return None
+        return self.data.get(key)
+    
+    def set(self, key: str, value: Dict) -> None:
+        """Set a value in the cache."""
+        self._load_cache()
+        self.data[key] = value
+        self.last_update = int(time.time())
+        self._save_cache()
     
     def _save_cache(self) -> None:
-        """Save cache to disk."""
+        """Save cache data to file."""
         try:
-            with open(self.cache_file, 'w') as f:
-                json.dump(self.rankings_cache, f)
-            logger.info("cache_saved", 
-                       players_count=len(self.rankings_cache['data']), 
-                       last_offset=self.rankings_cache['last_offset'])
+            cache_data = {
+                'timestamp': self.last_update,
+                'data': self.data
+            }
+            with open(self.cache_file, 'w', encoding='utf-8') as f:
+                json.dump(cache_data, f)
         except Exception as e:
-            logger.error("cache_save_error", error=str(e))
+            logger.error("Failed to save cache", error=str(e))
     
-    def _is_cache_valid(self, timestamp: Optional[float] = None) -> bool:
-        """Check if cache is valid (less than configured duration old)."""
-        if timestamp is None:
-            timestamp = self.rankings_cache['timestamp']
-        
-        if not timestamp:
-            return False
-        
-        elapsed_time = time.time() - timestamp
-        return elapsed_time < settings.CACHE_DURATION
-    
-    def add_players(self, players: List[Dict], offset: int) -> None:
-        """Add players to cache and update last offset."""
-        if not self._is_cache_valid():
-            logger.info("cache_expired_clearing")
-            self.rankings_cache['data'] = []
-            self.rankings_cache['timestamp'] = time.time()
-            self.rankings_cache['last_offset'] = 0
-        
-        # Only add players that aren't already in cache
-        existing_names = {p.get('name', '').lower() for p in self.rankings_cache['data']}
-        new_players = [p for p in players if p.get('name', '').lower() not in existing_names]
-        
-        if new_players:
-            self.rankings_cache['data'].extend(new_players)
-            self.rankings_cache['last_offset'] = max(
-                self.rankings_cache['last_offset'], 
-                offset + len(players)
-            )
-            logger.info("players_added_to_cache", 
-                       new_count=len(new_players), 
-                       total_count=len(self.rankings_cache['data']))
-            self._save_cache()
-        else:
-            logger.info("no_new_players_to_cache")
+    def is_valid(self) -> bool:
+        """Check if cache is still valid."""
+        return (time.time() - self.last_update) < settings.CACHE_DURATION
     
     def search_player(self, player_name: str) -> Tuple[Optional[Dict], int]:
-        """Search for player in cache."""
-        if not self._is_cache_valid():
-            logger.info("cache_invalid")
+        """
+        Search for a player in the cached rankings.
+        Returns (player_data, position) if found, (None, last_position) if not found.
+        """
+        self._load_cache()
+        if not self.is_valid():
             return None, 0
         
-        target = player_name.lower()
-        logger.info("searching_cache", 
-                   cache_size=len(self.rankings_cache['data']))
-        
-        for i, player in enumerate(self.rankings_cache['data']):
-            if player.get('name', '').lower() == target:
+        target_name = player_name.lower()
+        for i, (_, player) in enumerate(self.data.items()):
+            if player.get('name', '').lower() == target_name:
                 logger.info("player_found_in_cache", position=i)
                 return player, i
         
-        logger.info("player_not_in_cache", 
-                   last_offset=self.rankings_cache['last_offset'])
-        return None, self.rankings_cache['last_offset']
+        # Return None and the size of cache as the last checked position
+        return None, len(self.data)
     
-    def get_cache_stats(self) -> Dict:
-        """Get statistics about the current cache state."""
+    def add_players(self, players: List[Dict], offset: int) -> None:
+        """Add players to cache and update last offset."""
+        self._load_cache()
+        
+        # If cache is expired, clear it
+        if not self.is_valid():
+            self.data = {}
+            self.last_update = int(time.time())
+        
+        # Add new players to cache
+        for player in players:
+            name = player.get('name', '').lower()
+            if name:  # Only add players with valid names
+                self.data[name] = player
+        
+        # Save the updated cache
+        self._save_cache()
+        logger.info("players_added_to_cache", new_count=len(players), total_count=len(self.data))
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Get cache statistics."""
+        self._load_cache()
+        cache_size = 0
+        if self.cache_file.exists():
+            cache_size = self.cache_file.stat().st_size
+        
         return {
-            'total_players': len(self.rankings_cache['data']),
-            'last_offset': self.rankings_cache['last_offset'],
-            'is_valid': self._is_cache_valid(),
-            'age': time.time() - (self.rankings_cache['timestamp'] or time.time()),
-            'size_bytes': self.cache_file.stat().st_size if self.cache_file.exists() else 0
+            'is_valid': self.is_valid(),
+            'total_players': len(self.data),
+            'size_bytes': cache_size,
+            'last_update': self.last_update
         }

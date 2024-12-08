@@ -102,10 +102,11 @@ class FCRankApp(ctk.CTk):
         self.sort_column = None
         self.sort_ascending = True
         
-        # Load flag and rank images
+        # Initialize image caches
         self.flag_images = {}
         self.rank_images = {}
-        self._load_images()
+        self.flags_dir = Path("flags")
+        self.rank_dir = Path("rank")
         
         # Configure grid with better responsiveness
         self.grid_columnconfigure(0, weight=1)
@@ -127,34 +128,68 @@ class FCRankApp(ctk.CTk):
         # Update cache info
         self._update_cache_info()
         
+        # Start preloading images in background
+        threading.Thread(target=self._preload_images, daemon=True).start()
+        
         logger.info("ui_initialized")
     
-    def _load_images(self):
-        """Load flag and rank images."""
-        flags_dir = Path("flags")
-        rank_dir = Path("rank")
+    def _preload_images(self):
+        """Preload images in background for better performance."""
+        try:
+            # Preload rank images (small set)
+            for rank_file in self.rank_dir.glob("rank*.png"):
+                if rank_file.name not in self.rank_images:
+                    try:
+                        rank_num = int(rank_file.stem[4:])
+                        self._load_rank_image(rank_num)
+                    except Exception as e:
+                        logger.error(f"Failed to preload rank: {rank_file.name}", error=str(e))
+            
+            # Preload most common flag images
+            common_flags = ['us', 'br', 'jp', 'kr', 'cn', 'gb', 'fr', 'de', 'es', 'mx']
+            for code in common_flags:
+                flag_file = self.flags_dir / f"{code}.png"
+                if flag_file.exists() and code not in self.flag_images:
+                    try:
+                        self._load_flag_image(code)
+                    except Exception as e:
+                        logger.error(f"Failed to preload flag: {code}", error=str(e))
+        except Exception as e:
+            logger.error("Failed to preload images", error=str(e))
+    
+    def _load_flag_image(self, country_code: str) -> Optional[ImageTk.PhotoImage]:
+        """Load a single flag image."""
+        if country_code in self.flag_images:
+            return self.flag_images[country_code]
         
-        # Load flag images
-        for flag_file in flags_dir.glob("*.png"):
-            if not flag_file.name.startswith("._"):  # Skip macOS metadata files
-                try:
-                    img = Image.open(flag_file)
-                    img = img.resize((24, 16), Image.Resampling.LANCZOS)
-                    photo = ImageTk.PhotoImage(img)
-                    self.flag_images[flag_file.stem.lower()] = photo
-                except Exception as e:
-                    logger.error(f"Failed to load flag: {flag_file.name}", error=str(e))
+        flag_file = self.flags_dir / f"{country_code}.png"
+        if flag_file.exists() and not flag_file.name.startswith("._"):
+            try:
+                img = Image.open(flag_file)
+                img = img.resize((24, 16), Image.Resampling.LANCZOS)
+                photo = ImageTk.PhotoImage(img)
+                self.flag_images[country_code] = photo
+                return photo
+            except Exception as e:
+                logger.error(f"Failed to load flag: {country_code}", error=str(e))
+        return None
+    
+    def _load_rank_image(self, rank_num: int) -> Optional[ImageTk.PhotoImage]:
+        """Load a single rank image."""
+        if rank_num in self.rank_images:
+            return self.rank_images[rank_num]
         
-        # Load rank images
-        for rank_file in rank_dir.glob("rank*.png"):
+        rank_file = self.rank_dir / f"rank{rank_num}.png"
+        if rank_file.exists():
             try:
                 img = Image.open(rank_file)
                 img = img.resize((24, 24), Image.Resampling.LANCZOS)
                 photo = ImageTk.PhotoImage(img)
-                rank_num = int(rank_file.stem[4:])  # Extract number from 'rank1.png'
                 self.rank_images[rank_num] = photo
+                return photo
             except Exception as e:
-                logger.error(f"Failed to load rank: {rank_file.name}", error=str(e))
+                logger.error(f"Failed to load rank: {rank_num}", error=str(e))
+        return None
     
     def _create_header_frame(self):
         """Create the header frame with search controls."""
@@ -290,7 +325,7 @@ class FCRankApp(ctk.CTk):
     
     def _update_cache_info(self):
         """Update cache information in status bar."""
-        stats = self.api.cache.get_cache_stats()
+        stats = self.api.cache.get_stats()
         self.status_bar.update_cache_info(stats)
     
     def search_player(self, username: Optional[str] = None):
@@ -391,8 +426,9 @@ class FCRankApp(ctk.CTk):
             
             # Create ELO rank image label
             elo_rank = min(6, max(1, (rank // 100) + 1))  # Convert rank to ELO tier (1-6)
-            if elo_rank in self.rank_images:
-                elo_label = ctk.CTkLabel(self.results_frame, text="", image=self.rank_images[elo_rank])
+            rank_image = self._load_rank_image(elo_rank)
+            if rank_image:
+                elo_label = ctk.CTkLabel(self.results_frame, text="", image=rank_image)
                 elo_label.grid(row=i, column=1, sticky="ew", padx=5, pady=2)
                 self._add_tooltip(elo_label, f"Rank Tier {elo_rank}")
             
@@ -401,13 +437,18 @@ class FCRankApp(ctk.CTk):
             name_label.grid(row=i, column=2, sticky="ew", padx=5, pady=2)
             
             # Create country flag label
-            if country_code in self.flag_images:
-                flag_label = ctk.CTkLabel(self.results_frame, text="", image=self.flag_images[country_code])
-                flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
-                self._add_tooltip(flag_label, country.get('name', country_code.upper()))
+            if country_code:
+                flag_image = self._load_flag_image(country_code)
+                if flag_image:
+                    flag_label = ctk.CTkLabel(self.results_frame, text="", image=flag_image)
+                    flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
+                    self._add_tooltip(flag_label, country.get('name', country_code.upper()))
+                else:
+                    # Fallback to text if flag not found
+                    flag_label = ctk.CTkLabel(self.results_frame, text=country_code.upper())
+                    flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
             else:
-                # Fallback to text if flag not found
-                flag_label = ctk.CTkLabel(self.results_frame, text=country_code.upper())
+                flag_label = ctk.CTkLabel(self.results_frame, text="")
                 flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
             
             # Add remaining stats
