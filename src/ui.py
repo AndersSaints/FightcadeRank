@@ -485,13 +485,14 @@ class FCRankApp(ctk.CTk):
             country = player.get('country', {})
             country_code = country.get('iso_code', '').lower() if isinstance(country, dict) else ''
             
-            # Get game info with proper fallbacks
-            game_info = player.get('gameinfo', {}).get('kof2002', {})
-            matches = game_info.get('num_matches', 0)
-            wins = game_info.get('wins', 0)
-            losses = game_info.get('losses', 0)
+            # Get stats from replay calculation
+            replay_stats = player.get('replay_stats', {})
+            matches = replay_stats.get('total_matches', 0)
+            wins = replay_stats.get('wins', 0)
+            losses = replay_stats.get('losses', 0)
+            win_rate = replay_stats.get('win_rate', 0.0)  # Already in percentage form
+            
             time_played = round(game_info.get('time_played', 0) / 3600, 1)  # Convert to hours
-            win_rate = (wins / matches) if matches > 0 else 0
             
             # Create country flag label with fixed width
             flag_label = ctk.CTkLabel(self.results_frame, text="", width=80)
@@ -509,7 +510,7 @@ class FCRankApp(ctk.CTk):
                 (str(matches), 80),
                 (str(wins), 80),
                 (str(losses), 80),
-                (f"{win_rate:.2%}", 100),
+                (f"{win_rate:.1f}%", 100),  # Display win rate with one decimal place
                 (str(time_played), 100),
                 (str((position - 1) // 15 + 1), 60)  # Calculate which page the player is on
             ]

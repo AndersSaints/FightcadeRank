@@ -10,20 +10,25 @@ class Settings(BaseSettings):
     # API Settings
     BASE_URL: str = "https://www.fightcade.com/api/"
     GAME_ID: str = "kof2002"
+    GAME_CHANNEL: str = "The King of Fighters 2002 (NGM-2650)"  # Full channel name for replay filtering
     USER_AGENT: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36"
     
     # Cache Settings
     CACHE_DURATION: int = 600  # 10 minutes in seconds
     CACHE_DIR: Path = Path("cache")
     
+    # Replay Settings
+    REPLAY_BATCH_SIZE: int = 100  # Number of replays to fetch per batch
+    MAX_REPLAY_OFFSET: int = 20000  # Maximum number of replays to fetch
+    REQUEST_DELAY: float = 0.5  # Delay between requests in seconds
+    RATE_LIMIT_DELAY: float = 2.0  # Delay when rate limited
+    
     # Search Settings
     BATCH_SIZE: int = 100  # API batch size
     MAX_SEARCH_OFFSET: int = 50000  # Increased to allow searching up to 500 pages deep
     
     # Rate Limiting
-    RATE_LIMIT_DELAY: int = 1  # seconds
     ERROR_DELAY: int = 5  # seconds
-    REQUEST_DELAY: float = 0.5  # seconds
     
     # UI Settings
     WINDOW_SIZE: Tuple[int, int] = (1200, 800)
