@@ -1,0 +1,2 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T07:40:38.100037Z"}
+{"error": "'PlayerCache' object has no attribute 'get_cache_stats'", "event": "Application error occurred", "logger": "__main__", "level": "error", "timestamp": "2024-12-08T07:40:38.200063Z"}

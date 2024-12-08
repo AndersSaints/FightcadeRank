@@ -1,0 +1,4 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T07:38:01.480134Z"}
+{"cache_age": 677.4641854763031, "event": "cache_expired", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:38:01.655413Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:38:01.694140Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:38:03.739660Z"}

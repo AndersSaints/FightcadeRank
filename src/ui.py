@@ -235,11 +235,45 @@ class FCRankApp(ctk.CTk):
         # Loading spinner
         self.spinner = LoadingSpinner(header)
         self.spinner.grid(row=0, column=4, padx=5, pady=5)
+
+        # Add a separator
+        separator = ctk.CTkFrame(header, width=2, height=32)
+        separator.grid(row=0, column=5, padx=10, pady=5)
+        
+        # Ranking pages label
+        ranking_label = ctk.CTkLabel(
+            header,
+            text="Ranking Pages:",
+            font=("Helvetica", 12, "bold")
+        )
+        ranking_label.grid(row=0, column=6, padx=(5, 0), pady=5)
+        
+        # Ranking pages entry
+        self.ranking_pages_entry = ctk.CTkEntry(
+            header,
+            placeholder_text="# of pages",
+            width=80,
+            height=32
+        )
+        self.ranking_pages_entry.grid(row=0, column=7, padx=5, pady=5)
+        self.ranking_pages_entry.insert(0, "1")  # Default value
+        
+        # Get Rankings button
+        self.get_rankings_button = ctk.CTkButton(
+            header,
+            text="Get Rankings",
+            command=self.get_rankings,
+            width=100,
+            height=32
+        )
+        self.get_rankings_button.grid(row=0, column=8, padx=5, pady=5)
         
         # Add tooltips
         self._add_tooltip(self.search_entry, "Enter player name to search")
         self._add_tooltip(self.clear_button, "Clear search (Esc)")
         self._add_tooltip(self.search_button, "Search for player (Enter)")
+        self._add_tooltip(self.ranking_pages_entry, "Enter number of ranking pages to fetch (1-50)")
+        self._add_tooltip(self.get_rankings_button, "Fetch rankings for specified number of pages")
     
     def _create_content_frame(self):
         """Create the main content frame with results table."""
@@ -408,8 +442,8 @@ class FCRankApp(ctk.CTk):
         for widget in self.results_frame.winfo_children():
             widget.destroy()
         
-        start_idx = self.current_page * settings.PAGE_SIZE
-        page_data = self.rankings_data[start_idx:start_idx + settings.PAGE_SIZE]
+        start_idx = self.current_page * 15
+        page_data = self.rankings_data[start_idx:start_idx + 15]
         
         for i, player in enumerate(page_data):
             # Use the found_rank from search result instead of API rank
@@ -468,7 +502,7 @@ class FCRankApp(ctk.CTk):
                 label.grid(row=i, column=j, sticky="ew", padx=5, pady=2)
         
         # Update navigation
-        total_pages = (len(self.rankings_data) - 1) // settings.PAGE_SIZE + 1
+        total_pages = (len(self.rankings_data) - 1) // 15 + 1
         self.page_label.configure(
             text=f"Page {self.current_page + 1} of {total_pages}"
         )
@@ -492,7 +526,7 @@ class FCRankApp(ctk.CTk):
     
     def next_page(self):
         """Go to next page."""
-        total_pages = (len(self.rankings_data) - 1) // settings.PAGE_SIZE + 1
+        total_pages = (len(self.rankings_data) - 1) // 15 + 1
         if self.current_page < total_pages - 1:
             self.current_page += 1
             self.display_rankings()
@@ -560,3 +594,94 @@ class FCRankApp(ctk.CTk):
         
         widget.bind('<Enter>', show_tooltip)
         widget.bind('<Leave>', hide_tooltip)
+
+    def get_rankings(self):
+        """Fetch rankings for the specified number of pages."""
+        try:
+            ui_pages = int(self.ranking_pages_entry.get().strip())
+            if ui_pages < 1:
+                self.show_error("Please enter a positive number of pages")
+                return
+            if ui_pages > 50:
+                self.show_error("Maximum 50 pages allowed")
+                return
+                
+            # Calculate total players needed based on UI pages
+            total_players_needed = ui_pages * settings.UI_PAGE_SIZE
+            
+            # Calculate how many API calls we need (each API call can fetch up to 100 players)
+            api_calls_needed = (total_players_needed + settings.BATCH_SIZE - 1) // settings.BATCH_SIZE
+                
+            # Disable controls during fetch
+            self.get_rankings_button.configure(state="disabled")
+            self.ranking_pages_entry.configure(state="disabled")
+            self.spinner.start()
+            
+            # Start fetching in a separate thread
+            def fetch_task():
+                try:
+                    self.update_progress("Fetching rankings...")
+                    rankings = []
+                    
+                    for api_call in range(api_calls_needed):
+                        # Calculate remaining players needed
+                        remaining_players = total_players_needed - len(rankings)
+                        
+                        # For the last batch, only request what we need (up to 100)
+                        batch_size = min(settings.BATCH_SIZE, remaining_players)
+                        
+                        # Calculate API offset based on current progress
+                        api_offset = api_call * settings.BATCH_SIZE
+                        
+                        self.update_progress(f"Fetching players {api_offset + 1}-{min(api_offset + batch_size, total_players_needed)} of {total_players_needed}...")
+                        
+                        # Get page data
+                        page_data = self.api.get_rankings(api_offset, batch_size)
+                        if not page_data:
+                            break
+                            
+                        # Add rank to each player based on offset
+                        for i, player in enumerate(page_data):
+                            player['rank'] = api_offset + i + 1
+                            
+                        rankings.extend(page_data)
+                        
+                        # Update display after each batch if we have data
+                        if len(rankings) >= settings.UI_PAGE_SIZE:
+                            self.rankings_data = rankings
+                            self.current_page = 0
+                            self.after(0, self.display_rankings)
+                        
+                        # Rate limiting between requests
+                        time.sleep(settings.REQUEST_DELAY)
+                        
+                        # If we have enough players for the requested UI pages, stop
+                        if len(rankings) >= total_players_needed:
+                            break
+                        
+                    # Final update
+                    if rankings:
+                        # Trim to exact number of players needed for UI pages
+                        self.rankings_data = rankings[:total_players_needed]
+                        self.current_page = 0
+                        self.after(0, self.display_rankings)
+                        self.after(0, lambda: self.update_progress(f"Loaded {len(self.rankings_data)} players ({ui_pages} pages)"))
+                    else:
+                        self.after(0, lambda: self.show_error("No rankings data received"))
+                    
+                except Exception as e:
+                    logger.error("rankings_fetch_error", error=str(e))
+                    self.after(0, lambda: self.show_error(f"Failed to fetch rankings: {str(e)}"))
+                
+                finally:
+                    # Re-enable controls
+                    self.after(0, lambda: self.get_rankings_button.configure(state="normal"))
+                    self.after(0, lambda: self.ranking_pages_entry.configure(state="normal"))
+                    self.after(0, self.spinner.stop)
+            
+            thread = threading.Thread(target=fetch_task)
+            thread.daemon = True
+            thread.start()
+            
+        except ValueError:
+            self.show_error("Please enter a valid number")

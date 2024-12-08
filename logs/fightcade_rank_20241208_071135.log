@@ -1,0 +1,3 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T07:11:35.321785Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:11:35.428838Z"}
+{"error": "unknown color name \"gray81 gray20\"", "event": "Application error occurred", "logger": "__main__", "level": "error", "timestamp": "2024-12-08T07:11:37.443586Z"}

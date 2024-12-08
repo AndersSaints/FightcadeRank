@@ -1,0 +1,5 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T08:27:06.005337Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:27:06.097989Z"}
+{"offset": 0, "limit": 75, "event": "fetching_rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:27:12.877051Z"}
+{"offset": 0, "limit": 75, "error": "'NoneType' object has no attribute 'get'", "event": "rankings_fetch_error", "logger": "src.api", "level": "error", "timestamp": "2024-12-08T08:27:12.877578Z"}
+{"message": "No rankings data received", "event": "error_displayed", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T08:27:12.877578Z"}

@@ -17,18 +17,18 @@ class Settings(BaseSettings):
     CACHE_DIR: Path = Path("cache")
     
     # Search Settings
-    BATCH_SIZE: int = 100
+    BATCH_SIZE: int = 100  # API batch size
     MAX_SEARCH_OFFSET: int = 5000
     
     # Rate Limiting
-    RATE_LIMIT_DELAY: int = 30  # seconds
-    ERROR_DELAY: int = 10  # seconds
-    REQUEST_DELAY: int = 1  # seconds
+    RATE_LIMIT_DELAY: int = 1  # seconds
+    ERROR_DELAY: int = 5  # seconds
+    REQUEST_DELAY: float = 0.5  # seconds
     
     # UI Settings
     WINDOW_SIZE: Tuple[int, int] = (1200, 800)
     MIN_WINDOW_SIZE: Tuple[int, int] = (1000, 600)
-    PAGE_SIZE: int = 15
+    UI_PAGE_SIZE: int = 15  # Number of players shown per page in UI
     TOOLTIP_DELAY: int = 500  # milliseconds
     
     # Table Column Widths

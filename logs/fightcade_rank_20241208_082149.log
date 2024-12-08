@@ -1,0 +1,5 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T08:21:49.317598Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:21:49.419412Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:21:55.370074Z"}
+{"page": 0, "error": "'Settings' object has no attribute 'PAGE_SIZE'", "event": "Failed to fetch rankings", "logger": "src.api", "level": "error", "timestamp": "2024-12-08T08:21:55.371074Z"}
+{"message": "No rankings data received", "event": "error_displayed", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T08:21:56.372283Z"}

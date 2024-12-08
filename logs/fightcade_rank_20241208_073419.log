@@ -1,0 +1,4 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T07:34:19.216635Z"}
+{"players_count": 399, "last_offset": 400, "event": "cache_loaded", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:34:19.380610Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:34:19.440384Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:34:21.486602Z"}

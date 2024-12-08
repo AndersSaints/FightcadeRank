@@ -1,0 +1,16 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T07:42:14.487468Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:42:14.584471Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:42:24.864288Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:24.916741Z"}
+{"message": "Checking if player exists...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:24.916741Z"}
+{"username": "andy v", "event": "Fetching user information", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:24.917741Z"}
+{"message": "Player found, searching for ranking...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:24.953767Z"}
+{"message": "Searching...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:24.953767Z"}
+{"offset": 0, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:24.954842Z"}
+{"message": "Error during search: 'PlayerCache' object has no attribute 'add_players'", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:25.375691Z"}
+{"message": "Searching...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:35.377112Z"}
+{"offset": 0, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:35.377112Z"}
+{"message": "Error during search: 'PlayerCache' object has no attribute 'add_players'", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:35.407409Z"}
+{"message": "Searching...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:45.408337Z"}
+{"offset": 0, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:45.408337Z"}
+{"message": "Error during search: 'PlayerCache' object has no attribute 'add_players'", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:42:45.436018Z"}

@@ -1,0 +1,4 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T08:13:56.506554Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:13:56.603562Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:14:01.250248Z"}
+{"page": 0, "error": "404 Client Error: Not Found for url: https://www.fightcade.com/api/rankings?game=kof2002&offset=0&limit=15", "event": "Failed to fetch rankings", "logger": "src.api", "level": "error", "timestamp": "2024-12-08T08:14:01.342932Z"}
