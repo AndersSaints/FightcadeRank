@@ -1,0 +1,7 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:35:46.677963Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:35:46.780119Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:35:53.087051Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:35:53.161657Z"}
+{"error": "FCRankApp.search_player.<locals>.search_task.<locals>.<lambda>() takes 1 positional argument but 2 were given", "event": "Search failed", "logger": "src.api", "level": "error", "timestamp": "2024-12-08T16:35:53.162184Z"}
+{"error": "FCRankApp.search_player.<locals>.search_task.<locals>.<lambda>() takes 1 positional argument but 2 were given", "event": "search_error", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T16:35:53.162184Z"}
+{"message": "FCRankApp.search_player.<locals>.search_task.<locals>.<lambda>() takes 1 positional argument but 2 were given", "event": "error_displayed", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T16:35:53.162184Z"}

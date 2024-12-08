@@ -1,0 +1,5 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:01:53.899104Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:01:54.000582Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:02:00.393559Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:02:00.406469Z"}
+{"event": "Search failed: 'FightcadeAPI' object has no attribute 'get_user_info'", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T16:02:00.406469Z", "exception": "Traceback (most recent call last):\n  File \"D:\\Repos\\FightcadeRank\\src\\ui.py\", line 423, in search\n    player_data = self.api.get_user_info(username)\nAttributeError: 'FightcadeAPI' object has no attribute 'get_user_info'"}

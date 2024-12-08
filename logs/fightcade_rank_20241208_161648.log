@@ -1,0 +1,6 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:16:48.231495Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:16:48.415086Z"}
+Resource not found at https://www.fightcade.com/api/v1/user/andy%20v/info
+User info request failed for andy%20v
+Player andy v not found
+{"message": "Player not found", "event": "error_displayed", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T16:16:55.321898Z"}

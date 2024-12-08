@@ -1,0 +1,2 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:13:18.612474Z"}
+{"error": "'FightcadeAPI' object has no attribute 'cache'", "event": "Application error occurred", "logger": "__main__", "level": "error", "timestamp": "2024-12-08T16:13:18.901268Z"}

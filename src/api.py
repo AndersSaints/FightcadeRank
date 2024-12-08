@@ -112,124 +112,140 @@ class FightcadeAPI:
         """Search for a player using cache and API calls with parallel processing."""
         from concurrent.futures import ThreadPoolExecutor, as_completed
         import threading
+        from .replay_stats import ReplayStats
         
         self._ensure_initialized()
         if not username:
             raise ValueError("Player name cannot be empty")
         
-        def update_progress(message: str) -> None:
+        def update_progress(message: str, username: str) -> None:
             """Update progress with logging."""
             if progress_callback:
-                progress_callback(message)
-            logger.info("Search progress update", message=message)
+                progress_callback(message, username)
+            logger.info("Search progress update", message=message, username=username)
         
         try:
             # First check if player exists
-            update_progress("Checking if player exists...")
+            update_progress("Checking if player exists...", username)
             user_data = self.get_user(username)
             
             if user_data.get('res') != 'OK':
-                update_progress("Player not found")
+                update_progress("Player not found", username)
                 return None, 0
             
-            update_progress("Player found, searching for ranking...")
+            update_progress("Player found, searching for ranking...", username)
             
             # Check cache first
             cached_player, start_offset = self.cache.search_player(username)
-            if cached_player:
-                update_progress(f"Found player in cache at rank {start_offset + 1}")
-                return cached_player, start_offset
-            
-            # Thread-safe variables
             found_player = None
             found_offset = None
-            search_complete = threading.Event()
             
-            def search_batch(start_offset: int, batch_number: int) -> Optional[Tuple[Dict, int]]:
-                """Search a batch of players."""
-                if search_complete.is_set():
-                    return None
-                    
-                try:
-                    current_page = (start_offset // settings.BATCH_SIZE) + 1
-                    update_progress(f"Searching page {current_page}...")
-                    
-                    response = self.search_rankings(start_offset)
-                    if response.get('res') != 'OK':
-                        if 'rate' in str(response.get('error', '')).lower():
-                            time.sleep(settings.RATE_LIMIT_DELAY)
-                            return None
-                        return None
-                    
-                    players = response.get('results', {}).get('results', [])
-                    if not players:
-                        return None
-                    
-                    # Add to cache
-                    self.cache.add_players(players, start_offset)
-                    
-                    # Check this batch
-                    for i, player in enumerate(players):
-                        if search_complete.is_set():
-                            return None
-                        if player.get('name', '').lower() == username.lower():
-                            return (player, start_offset + i)
-                    
-                    time.sleep(settings.REQUEST_DELAY)
-                    return None
-                    
-                except Exception as e:
-                    logger.error("Batch search failed", 
-                               batch=batch_number, 
-                               error=str(e))
-                    return None
-            
-            # Calculate batches for parallel processing
-            max_workers = 5  # Maximum concurrent requests
-            batch_size = settings.BATCH_SIZE
-            total_batches = settings.MAX_SEARCH_OFFSET // batch_size
-            
-            update_progress(f"Starting parallel search with {max_workers} workers...")
-            
-            with ThreadPoolExecutor(max_workers=max_workers) as executor:
-                # Submit all batches
-                future_to_batch = {
-                    executor.submit(search_batch, i * batch_size, i): i 
-                    for i in range(total_batches)
-                }
+            if cached_player:
+                update_progress(f"Found player in cache at rank {start_offset + 1}", username)
+                found_player = cached_player
+                found_offset = start_offset
+            else:
+                # Thread-safe variables
+                search_complete = threading.Event()
                 
-                try:
+                def search_batch(start_offset: int, batch_number: int) -> Optional[Tuple[Dict, int]]:
+                    """Search a batch of players."""
+                    if search_complete.is_set():
+                        return None
+                        
+                    try:
+                        current_page = (start_offset // settings.BATCH_SIZE) + 1
+                        update_progress(f"Searching page {current_page}...", username)
+                        
+                        response = self.search_rankings(start_offset)
+                        if response.get('res') != 'OK':
+                            if 'rate' in str(response.get('error', '')).lower():
+                                time.sleep(settings.RATE_LIMIT_DELAY)
+                                return None
+                            return None
+                        
+                        players = response.get('results', {}).get('results', [])
+                        if not players:
+                            return None
+                        
+                        # Add to cache
+                        self.cache.add_players(players, start_offset)
+                        
+                        # Check this batch
+                        for i, player in enumerate(players):
+                            if search_complete.is_set():
+                                return None
+                            if player.get('name', '').lower() == username.lower():
+                                return (player, start_offset + i)
+                        
+                        time.sleep(settings.REQUEST_DELAY)
+                        return None
+                        
+                    except Exception as e:
+                        logger.error("Batch search failed", 
+                                   batch=batch_number, 
+                                   error=str(e))
+                        return None
+                
+                # Calculate batches for parallel processing
+                max_workers = 5  # Maximum concurrent requests
+                batch_size = settings.BATCH_SIZE
+                total_batches = settings.MAX_SEARCH_OFFSET // batch_size
+                
+                update_progress(f"Starting parallel search with {max_workers} workers...", username)
+                
+                with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    # Submit all batches
+                    future_to_batch = {
+                        executor.submit(search_batch, i * batch_size, i): i 
+                        for i in range(total_batches)
+                    }
+                    
+                    # Process completed futures
                     for future in as_completed(future_to_batch):
-                        batch_num = future_to_batch[future]
-                        try:
-                            result = future.result()
-                            if result:
-                                player, offset = result
-                                found_player = player
-                                found_offset = offset
-                                search_complete.set()
-                                break
-                        except Exception as e:
-                            logger.error("Future failed", 
-                                       batch=batch_num, 
-                                       error=str(e))
-                finally:
-                    # Make sure to signal completion to stop other threads
-                    search_complete.set()
+                        result = future.result()
+                        if result:
+                            found_player, found_offset = result
+                            search_complete.set()
+                            break
             
-            if found_player:
-                rank = found_offset + 1
-                update_progress(f"Found player at rank {rank}")
-                return found_player, found_offset
+            if not found_player:
+                update_progress("Player not found in rankings", username)
+                return None, 0
             
-            update_progress("Player not found in rankings")
-            return None, 0
+            # Initialize replay loading state
+            if 'gameinfo' not in found_player:
+                found_player['gameinfo'] = {}
+            if settings.GAME_ID not in found_player['gameinfo']:
+                found_player['gameinfo'][settings.GAME_ID] = {}
+            found_player['gameinfo'][settings.GAME_ID]['replays_loaded'] = False
+            
+            # Now fetch replays and calculate statistics
+            update_progress("Fetching replay data...", username)
+            replays = self.get_all_player_replays(username, lambda msg, username: update_progress(msg, username))
+            
+            if replays:
+                update_progress("Calculating statistics...", username)
+                # Calculate replay statistics
+                stats_calculator = ReplayStats()
+                stats = stats_calculator.calculate_stats(replays, username)
+                if stats:
+                    game_info = found_player['gameinfo'][settings.GAME_ID]
+                    game_info.update({
+                        'num_matches': stats['total_matches'],
+                        'wins': stats['wins'],
+                        'losses': stats['losses'],
+                        'win_rate': stats['win_rate'],
+                        'replays_loaded': True  # Mark replays as loaded
+                    })
+            
+            update_progress("Search complete", username)
+            return found_player, found_offset
             
         except Exception as e:
-            logger.error("Search failed", 
-                        player=username, 
-                        error=str(e))
-            raise
+            logger.error("Search failed", error=str(e))
+            update_progress(f"Error: {str(e)}", username)
+            return None, 0
     
     def get_rankings(self, offset: int = 0, limit: int = None) -> List[Dict]:
         """
@@ -269,3 +285,114 @@ class FightcadeAPI:
         except Exception as e:
             logger.error("rankings_fetch_error", offset=offset, limit=limit, error=str(e))
             return []
+    
+    def get_player_replays(self, username: str, offset: int = 0, limit: int = 15) -> Dict:
+        """Get player replay information."""
+        data = {
+            "req": "searchquarks",
+            "username": username,
+            "offset": offset,
+            "limit": limit,
+            "channel": settings.GAME_CHANNEL  # Use the correct channel ID for replay search
+        }
+        
+        logger.info("Fetching player replays", 
+                   username=username,
+                   offset=offset,
+                   limit=limit,
+                   channel=settings.GAME_CHANNEL)
+        
+        response = self._make_request("POST", "", data=data)
+        
+        if response.get('res') == 'OK':
+            results = response.get('results', {}).get('results', [])
+            logger.info("Replay fetch response", 
+                       username=username,
+                       total_replays=len(results),
+                       has_results=bool(results))
+        
+        return response
+    
+    def get_all_player_replays(self, username: str, progress_callback=None) -> List[Dict]:
+        """Get all available replays for a player with parallel processing."""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import threading
+        
+        all_replays = []
+        search_complete = threading.Event()
+        
+        def update_progress(message: str, username: str) -> None:
+            """Update progress with logging."""
+            if progress_callback:
+                progress_callback(message, username)
+            logger.info("Replay progress update", message=message, username=username)
+        
+        def fetch_batch(start_offset: int, batch_number: int) -> Optional[List[Dict]]:
+            """Fetch a batch of replays."""
+            if search_complete.is_set():
+                return None
+                
+            try:
+                update_progress(f"Fetching replay batch {batch_number + 1}...", username)
+                
+                response = self.get_player_replays(username, start_offset, settings.REPLAY_BATCH_SIZE)
+                
+                if response.get('res') != 'OK':
+                    logger.error("Failed to fetch replays", 
+                               username=username,
+                               batch=batch_number,
+                               error=response.get('error'))
+                    if 'rate' in str(response.get('error', '')).lower():
+                        time.sleep(settings.RATE_LIMIT_DELAY)
+                    return None
+                
+                replays = response.get('results', {}).get('results', [])
+                logger.info("Batch replay results", 
+                           username=username,
+                           batch=batch_number,
+                           total_replays=len(replays))
+                
+                if not replays:
+                    search_complete.set()
+                    return None
+                
+                # Filter replays for KOF 2002
+                kof_replays = [r for r in replays if r.get('channelname') == settings.GAME_CHANNEL]
+                logger.info("Filtered KOF replays", 
+                           username=username,
+                           batch=batch_number,
+                           total_kof_replays=len(kof_replays))
+                
+                time.sleep(settings.REQUEST_DELAY)
+                return kof_replays if kof_replays else None
+                
+            except Exception as e:
+                logger.error("Batch fetch failed", 
+                           batch=batch_number, 
+                           error=str(e))
+                return None
+        
+        # Calculate batches for parallel processing
+        max_workers = settings.MAX_REPLAY_WORKERS
+        total_batches = settings.MAX_REPLAY_REQUESTS
+        
+        update_progress(f"Starting parallel replay fetch with {max_workers} workers...", username)
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all batches
+            future_to_batch = {
+                executor.submit(fetch_batch, i * settings.REPLAY_BATCH_SIZE, i): i 
+                for i in range(total_batches)
+            }
+            
+            # Process completed futures
+            for future in as_completed(future_to_batch):
+                if search_complete.is_set():
+                    break
+                    
+                batch_replays = future.result()
+                if batch_replays:
+                    all_replays.extend(batch_replays)
+        
+        update_progress(f"Found {len(all_replays)} replays", username)
+        return all_replays

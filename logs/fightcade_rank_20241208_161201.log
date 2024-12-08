@@ -1,0 +1,7 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:12:01.037354Z"}
+{"event": "API session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:12:01.417280Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:12:01.479616Z"}
+{"event": "Resource not found at https://fightcade.com/api/v1/user/andy v", "logger": "src.api", "level": "warning", "timestamp": "2024-12-08T16:12:10.031099Z"}
+{"event": "User info request failed for andy v", "logger": "src.api", "level": "warning", "timestamp": "2024-12-08T16:12:10.032099Z"}
+{"event": "Player andy v not found", "logger": "src.api", "level": "warning", "timestamp": "2024-12-08T16:12:10.032099Z"}
+{"message": "Player not found", "event": "error_displayed", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T16:12:10.032099Z"}

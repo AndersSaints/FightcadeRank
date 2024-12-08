@@ -1,0 +1,5 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:08:27.455343Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:08:27.564072Z"}
+{"error": "'NoneType' object has no attribute 'get'", "event": "Failed to initialize session", "logger": "src.api", "level": "error", "timestamp": "2024-12-08T16:08:32.057865Z"}
+{"event": "Error finding player andy v: 'NoneType' object has no attribute 'get'", "logger": "src.api", "level": "error", "timestamp": "2024-12-08T16:08:32.057865Z"}
+{"message": "Player not found", "event": "error_displayed", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T16:08:32.057865Z"}

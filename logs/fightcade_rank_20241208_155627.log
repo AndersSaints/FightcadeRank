@@ -1,0 +1,10 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T15:56:27.613328Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T15:56:27.715597Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T15:56:33.806162Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:56:33.894707Z"}
+{"message": "Checking if player exists...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:56:33.894707Z"}
+{"username": "andy v", "event": "Fetching user information", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:56:33.894707Z"}
+{"message": "Player found, searching for ranking...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:56:33.979363Z"}
+{"position": 355, "event": "player_found_in_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:56:33.979889Z"}
+{"message": "Found player in cache at rank 356", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:56:33.979889Z"}
+{"page": 1, "total_pages": 1, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T15:56:33.992725Z"}

@@ -1,0 +1,30 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T15:57:47.237288Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T15:57:47.353410Z"}
+{"event": "Cache cleared successfully", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:57:49.797813Z"}
+{"event": "Replay stats cache cleared", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:57:49.797813Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T15:57:54.059642Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.192449Z"}
+{"message": "Checking if player exists...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.193475Z"}
+{"username": "andy v", "event": "Fetching user information", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.193475Z"}
+{"message": "Player found, searching for ranking...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.364983Z"}
+{"message": "Starting parallel search with 5 workers...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.365491Z"}
+{"message": "Searching page 1...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.366096Z"}
+{"message": "Searching page 2...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.366096Z"}
+{"offset": 0, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.367065Z"}
+{"offset": 100, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.367065Z"}
+{"message": "Searching page 4...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.373476Z"}
+{"message": "Searching page 5...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.373476Z"}
+{"message": "Searching page 3...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.373476Z"}
+{"offset": 300, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.374477Z"}
+{"offset": 400, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.374477Z"}
+{"offset": 200, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.374477Z"}
+{"new_count": 100, "total_count": 100, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:57:54.430308Z"}
+{"new_count": 100, "total_count": 200, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:57:54.474119Z"}
+{"new_count": 100, "total_count": 300, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:57:54.497724Z"}
+{"new_count": 100, "total_count": 400, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:57:54.521250Z"}
+{"new_count": 100, "total_count": 499, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:57:54.536633Z"}
+{"message": "Searching page 6...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.537211Z"}
+{"offset": 500, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:54.538166Z"}
+{"new_count": 100, "total_count": 598, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T15:57:54.588355Z"}
+{"message": "Found player at rank 356", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T15:57:55.028186Z"}
+{"page": 1, "total_pages": 1, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T15:57:55.040426Z"}

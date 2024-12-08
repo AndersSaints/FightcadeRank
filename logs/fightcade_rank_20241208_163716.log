@@ -1,0 +1,49 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:37:16.219643Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:37:16.332287Z"}
+{"event": "Cache cleared successfully", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:37:24.461758Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:37:27.244992Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.307734Z"}
+{"message": "Checking if player exists...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.307734Z"}
+{"username": "andy v", "event": "Fetching user information", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.307734Z"}
+{"message": "Player found, searching for ranking...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.362839Z"}
+{"message": "Starting parallel search with 5 workers...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.363840Z"}
+{"message": "Searching page 1...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.365347Z"}
+{"message": "Searching page 2...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.365347Z"}
+{"message": "Searching page 3...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.365347Z"}
+{"offset": 0, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.365896Z"}
+{"offset": 100, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.369468Z"}
+{"offset": 200, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.369468Z"}
+{"message": "Searching page 4...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.372069Z"}
+{"offset": 300, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.373095Z"}
+{"message": "Searching page 5...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.373095Z"}
+{"offset": 400, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.373095Z"}
+{"new_count": 100, "total_count": 100, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:37:27.424297Z"}
+{"new_count": 100, "total_count": 200, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:37:27.443864Z"}
+{"new_count": 100, "total_count": 300, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:37:27.450522Z"}
+{"new_count": 100, "total_count": 499, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:37:27.482081Z"}
+{"new_count": 100, "total_count": 499, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:37:27.483081Z"}
+{"message": "Searching page 6...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.484082Z"}
+{"offset": 500, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.485082Z"}
+{"new_count": 100, "total_count": 599, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:37:27.538291Z"}
+{"message": "Fetching replay data...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.983996Z"}
+{"message": "Starting parallel replay fetch with 5 workers...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.983996Z"}
+{"message": "Starting parallel replay fetch with 5 workers...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.983996Z"}
+{"message": "Fetching replay batch 1...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.984996Z"}
+{"message": "Fetching replay batch 1...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.984996Z"}
+{"username": "andy v", "offset": 0, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.984996Z"}
+{"message": "Fetching replay batch 2...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.986504Z"}
+{"message": "Fetching replay batch 3...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.986504Z"}
+{"message": "Fetching replay batch 2...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.986504Z"}
+{"message": "Fetching replay batch 4...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.987530Z"}
+{"message": "Fetching replay batch 5...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.987530Z"}
+{"message": "Fetching replay batch 3...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.987530Z"}
+{"username": "andy v", "offset": 100, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.988057Z"}
+{"message": "Fetching replay batch 4...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.988057Z"}
+{"message": "Fetching replay batch 5...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.988564Z"}
+{"username": "andy v", "offset": 200, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.988564Z"}
+{"username": "andy v", "offset": 300, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.988564Z"}
+{"username": "andy v", "offset": 400, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:27.988564Z"}
+{"message": "Found 0 replays", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:28.570538Z"}
+{"message": "Found 0 replays", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:28.571066Z"}
+{"message": "Search complete", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:37:28.571066Z"}
+{"page": 1, "total_pages": 1, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:37:28.609830Z"}

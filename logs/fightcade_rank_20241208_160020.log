@@ -1,0 +1,6 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:00:20.767125Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:00:20.872287Z"}
+{"event": "Cache cleared successfully", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:00:23.194266Z"}
+{"event": "Replay stats cache cleared", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:00:23.194266Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:00:29.682421Z"}
+{"event": "Search failed: 'FightcadeAPI' object has no attribute 'is_initialized'", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T16:00:29.682421Z", "exception": "Traceback (most recent call last):\n  File \"D:\\Repos\\FightcadeRank\\src\\ui.py\", line 418, in search\n    if not self.api.is_initialized():\nAttributeError: 'FightcadeAPI' object has no attribute 'is_initialized'"}

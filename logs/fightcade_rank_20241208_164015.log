@@ -1,0 +1,31 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T16:40:15.269605Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:40:15.368965Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:40:25.055237Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.120590Z"}
+{"message": "Checking if player exists...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.120590Z"}
+{"username": "andy v", "event": "Fetching user information", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.123123Z"}
+{"message": "Player found, searching for ranking...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.187364Z"}
+{"position": 455, "event": "player_found_in_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T16:40:25.187364Z"}
+{"message": "Found player in cache at rank 456", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.187364Z"}
+{"message": "Fetching replay data...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.188483Z"}
+{"message": "Starting parallel replay fetch with 5 workers...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.188483Z"}
+{"message": "Starting parallel replay fetch with 5 workers...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.188483Z"}
+{"message": "Fetching replay batch 1...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.189509Z"}
+{"message": "Fetching replay batch 1...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.189509Z"}
+{"username": "andy v", "offset": 0, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.190035Z"}
+{"message": "Fetching replay batch 2...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.190035Z"}
+{"message": "Fetching replay batch 3...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.190035Z"}
+{"message": "Fetching replay batch 2...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.190035Z"}
+{"message": "Fetching replay batch 4...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.190035Z"}
+{"message": "Fetching replay batch 3...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.190035Z"}
+{"username": "andy v", "offset": 100, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.191062Z"}
+{"message": "Fetching replay batch 4...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.191062Z"}
+{"username": "andy v", "offset": 200, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.191062Z"}
+{"username": "andy v", "offset": 300, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.192571Z"}
+{"message": "Fetching replay batch 5...", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.194597Z"}
+{"message": "Fetching replay batch 5...", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.194597Z"}
+{"username": "andy v", "offset": 400, "limit": 100, "event": "Fetching player replays", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:25.194597Z"}
+{"message": "Found 0 replays", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:26.227858Z"}
+{"message": "Found 0 replays", "username": "andy v", "event": "Replay progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:26.227858Z"}
+{"message": "Search complete", "username": "andy v", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T16:40:26.228857Z"}
+{"page": 1, "total_pages": 1, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T16:40:26.241080Z"}

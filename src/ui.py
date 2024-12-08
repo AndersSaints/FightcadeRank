@@ -14,48 +14,6 @@ from .logger import setup_logging
 
 logger = setup_logging()
 
-class LoadingSpinner(ctk.CTkFrame):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.angle = 0
-        self.is_spinning = False
-        
-        # Create canvas for spinner
-        self.canvas = ctk.CTkCanvas(self, width=30, height=30, 
-                                  bg=self._fg_color[1], highlightthickness=0)
-        self.canvas.pack(expand=True, fill="both")
-        
-        # Draw initial spinner
-        self._draw_spinner()
-    
-    def _draw_spinner(self):
-        """Draw the spinner at current angle."""
-        self.canvas.delete("spinner")
-        # Draw arc from current angle
-        self.canvas.create_arc(5, 5, 25, 25, 
-                             start=self.angle, 
-                             extent=300,
-                             tags="spinner", 
-                             width=2, 
-                             outline="#1f538d")
-    
-    def start(self):
-        """Start spinning animation."""
-        if not self.is_spinning:
-            self.is_spinning = True
-            self._spin()
-    
-    def stop(self):
-        """Stop spinning animation."""
-        self.is_spinning = False
-    
-    def _spin(self):
-        """Animate the spinner."""
-        if self.is_spinning:
-            self.angle = (self.angle + 10) % 360
-            self._draw_spinner()
-            self.after(50, self._spin)
-
 class StatusBar(ctk.CTkFrame):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -232,13 +190,9 @@ class FCRankApp(ctk.CTk):
         )
         self.search_button.grid(row=0, column=3, padx=5, pady=5)
         
-        # Loading spinner
-        self.spinner = LoadingSpinner(header)
-        self.spinner.grid(row=0, column=4, padx=5, pady=5)
-
         # Add a separator
         separator = ctk.CTkFrame(header, width=2, height=32)
-        separator.grid(row=0, column=5, padx=10, pady=5)
+        separator.grid(row=0, column=4, padx=10, pady=5)
         
         # Ranking pages label
         ranking_label = ctk.CTkLabel(
@@ -246,7 +200,7 @@ class FCRankApp(ctk.CTk):
             text="Ranking Pages:",
             font=("Helvetica", 12, "bold")
         )
-        ranking_label.grid(row=0, column=6, padx=(5, 0), pady=5)
+        ranking_label.grid(row=0, column=5, padx=(5, 0), pady=5)
         
         # Ranking pages entry
         self.ranking_pages_entry = ctk.CTkEntry(
@@ -255,7 +209,7 @@ class FCRankApp(ctk.CTk):
             width=80,
             height=32
         )
-        self.ranking_pages_entry.grid(row=0, column=7, padx=5, pady=5)
+        self.ranking_pages_entry.grid(row=0, column=6, padx=5, pady=5)
         self.ranking_pages_entry.insert(0, "1")  # Default value
         
         # Get Rankings button
@@ -266,7 +220,7 @@ class FCRankApp(ctk.CTk):
             width=100,
             height=32
         )
-        self.get_rankings_button.grid(row=0, column=8, padx=5, pady=5)
+        self.get_rankings_button.grid(row=0, column=7, padx=5, pady=5)
         
         # Clean Cache button
         self.clean_cache_button = ctk.CTkButton(
@@ -276,7 +230,7 @@ class FCRankApp(ctk.CTk):
             width=100,
             height=32
         )
-        self.clean_cache_button.grid(row=0, column=9, padx=5, pady=5)
+        self.clean_cache_button.grid(row=0, column=8, padx=5, pady=5)
         
         # Add tooltips
         self._add_tooltip(self.search_entry, "Enter player name to search")
@@ -405,9 +359,6 @@ class FCRankApp(ctk.CTk):
         self.search_button.configure(state="disabled")
         self.search_entry.configure(state="disabled")
         
-        # Start spinner
-        self.spinner.start()
-        
         # Clear previous results
         self.rankings_data = []
         
@@ -416,7 +367,7 @@ class FCRankApp(ctk.CTk):
             try:
                 player, offset = self.api.search_player(
                     username,
-                    lambda msg: self.after(0, self.update_progress, msg)
+                    lambda msg, player: self.after(0, self.update_progress, msg, player)
                 )
                 
                 if player:
@@ -426,7 +377,7 @@ class FCRankApp(ctk.CTk):
                     self.rankings_data = [player]
                     self.current_page = 0
                     self.after(0, self.display_rankings)
-                    self.after(0, lambda: self.update_progress("Found player"))
+                    self.after(0, lambda: self.update_progress("Found player", username))
                 
             except Exception as e:
                 logger.error("search_error", error=str(e))
@@ -446,7 +397,6 @@ class FCRankApp(ctk.CTk):
         """Clean up after search completion."""
         self.search_button.configure(state="normal")
         self.search_entry.configure(state="normal")
-        self.spinner.stop()
         self._update_cache_info()
     
     def display_rankings(self):
@@ -535,13 +485,6 @@ class FCRankApp(ctk.CTk):
                    page=self.current_page + 1, 
                    total_pages=total_pages)
     
-    def _determine_rank(self, position: int) -> int:
-        """
-        DEPRECATED: No longer used as rank is now taken directly from API response.
-        Previously used to determine rank based on player position.
-        """
-        return position
-    
     def prev_page(self):
         """Go to previous page."""
         if self.current_page > 0:
@@ -555,8 +498,10 @@ class FCRankApp(ctk.CTk):
             self.current_page += 1
             self.display_rankings()
     
-    def update_progress(self, message: str):
+    def update_progress(self, message: str, player_name: str = None):
         """Update progress message and status bar."""
+        if player_name:
+            message = f"[{player_name}] {message}"
         self.status_bar.update_status(message)
     
     def show_error(self, message: str):
@@ -639,7 +584,6 @@ class FCRankApp(ctk.CTk):
             # Disable controls during fetch
             self.get_rankings_button.configure(state="disabled")
             self.ranking_pages_entry.configure(state="disabled")
-            self.spinner.start()
             
             # Start fetching in a separate thread
             def fetch_task():
@@ -700,7 +644,6 @@ class FCRankApp(ctk.CTk):
                     # Re-enable controls
                     self.after(0, lambda: self.get_rankings_button.configure(state="normal"))
                     self.after(0, lambda: self.ranking_pages_entry.configure(state="normal"))
-                    self.after(0, self.spinner.stop)
             
             thread = threading.Thread(target=fetch_task)
             thread.daemon = True
