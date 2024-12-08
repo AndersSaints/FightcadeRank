@@ -30,12 +30,21 @@ class StatusBar(ctk.CTkFrame):
         """Update status message."""
         self.status_label.configure(text=message)
     
-    def update_cache_info(self, stats: Dict):
+    def update_cache_info(self, player_stats: Dict, replay_stats: Dict):
         """Update cache statistics."""
-        if stats['is_valid']:
-            text = f"Cache: {stats['total_players']} players, {stats['size_bytes']/1024:.1f}KB"
-        else:
-            text = "Cache: Invalid"
+        cache_info = []
+        
+        if player_stats['total_players'] > 0:
+            cache_info.append(f"Players: {player_stats['total_players']}")
+        
+        if player_stats['size_bytes'] > 0:
+            size_mb = player_stats['size_bytes'] / (1024 * 1024)
+            cache_info.append(f"Size: {size_mb:.1f}MB")
+        
+        if replay_stats['total_players'] > 0:
+            cache_info.append(f"Cached Replays: {replay_stats['total_players']}")
+        
+        text = " | ".join(cache_info) if cache_info else "Cache: Empty"
         self.cache_label.configure(text=text)
 
 class FCRankApp(ctk.CTk):
@@ -338,9 +347,14 @@ class FCRankApp(ctk.CTk):
         self.status_bar.grid(row=2, column=0, sticky="ew", padx=10, pady=5)
     
     def _update_cache_info(self):
-        """Update cache information in status bar."""
-        stats = self.api.cache.get_stats()
-        self.status_bar.update_cache_info(stats)
+        """Update cache information in the status bar."""
+        try:
+            player_stats = self.api.player_cache.get_stats()
+            replay_stats = self.api.replay_cache.get_stats()
+            self.status_bar.update_cache_info(player_stats, replay_stats)
+        except Exception as e:
+            logger.error("Failed to update cache info", error=str(e))
+            self.status_bar.cache_label.configure(text="Cache info unavailable")
     
     def search_player(self, username: Optional[str] = None):
         """Start player search in a separate thread."""
@@ -435,13 +449,14 @@ class FCRankApp(ctk.CTk):
             country = player.get('country', {})
             country_code = country.get('iso_code', '').lower() if isinstance(country, dict) else ''
             
-            # Get game info with proper fallbacks
-            game_info = player.get('gameinfo', {}).get('kof2002', {})
-            matches = game_info.get('num_matches', 0)
-            wins = game_info.get('wins', 0)
-            losses = game_info.get('losses', 0)
+            # Get stats from replay calculation
+            replay_stats = player.get('replay_stats', {})
+            matches = replay_stats.get('total_matches', 0)
+            wins = replay_stats.get('wins', 0)
+            losses = replay_stats.get('losses', 0)
+            win_rate = replay_stats.get('win_rate', 0.0)  # Already in percentage form
+            
             time_played = round(game_info.get('time_played', 0) / 3600, 1)  # Convert to hours
-            win_rate = (wins / matches) if matches > 0 else 0
             
             # Create country flag label with fixed width
             flag_label = ctk.CTkLabel(self.results_frame, text="", width=80)
@@ -459,7 +474,7 @@ class FCRankApp(ctk.CTk):
                 (str(matches), 80),
                 (str(wins), 80),
                 (str(losses), 80),
-                (f"{win_rate:.2%}", 100),
+                (f"{win_rate:.1f}%", 100),  # Display win rate with one decimal place
                 (str(time_played), 100),
                 (str((position - 1) // 15 + 1), 60)  # Calculate which page the player is on
             ]
@@ -653,13 +668,14 @@ class FCRankApp(ctk.CTk):
             self.show_error("Please enter a valid number")
 
     def clean_cache(self):
-        """Clean the player cache."""
+        """Clean all caches."""
         try:
-            self.api.cache.clean_cache()
+            self.api.player_cache.clean_cache()
+            self.api.replay_cache.clean_cache()
             self.update_progress("Cache cleared successfully")
             # Update both the cache info and status bar
             self._update_cache_info()
             self.status_bar.update_status("Cache cleared successfully")
         except Exception as e:
-            logger.error("clean_cache_error", error=str(e))
+            logger.error("Failed to clear cache", error=str(e))
             self.show_error(f"Failed to clear cache: {str(e)}")
