@@ -345,12 +345,12 @@ class FCRankApp(ctk.CTk):
         self.next_button.grid(row=0, column=2, padx=10, pady=10)
 
     def display_rankings(self):
-        # Clear previous rankings
+        # Clear previous content
         for widget in self.rankings_frame.winfo_children():
             widget.destroy()
             
         # Create headers
-        headers = ["Rank", "Player", "Country", "ELO", "Matches", "Time Played"]
+        headers = ["Rank", "Player", "Country", "Level", "Matches", "Time Played"]
         for i, header in enumerate(headers):
             label = ctk.CTkLabel(self.rankings_frame, text=header, font=("Arial", 12, "bold"))
             label.grid(row=0, column=i, padx=5, pady=5, sticky="w")
@@ -361,35 +361,69 @@ class FCRankApp(ctk.CTk):
         
         # Display rankings for current page
         for i, player in enumerate(self.rankings_data[start_idx:end_idx], 1):
+            row_num = i
+            current_column = 0
+            
             # Rank number (calculated from position in data)
             rank_num = start_idx + i
             rank_label = ctk.CTkLabel(self.rankings_frame, text=str(rank_num))
-            rank_label.grid(row=i, column=0, padx=5, pady=2, sticky="w")
+            rank_label.grid(row=row_num, column=current_column, padx=5, pady=2, sticky="w")
+            current_column += 1
             
             # Player name
             name = player.get('name', 'N/A')
             name_label = ctk.CTkLabel(self.rankings_frame, 
                                     text=name,
                                     text_color="green" if name.lower() == self.search_entry.get().strip().lower() else None)
-            name_label.grid(row=i, column=1, padx=5, pady=2, sticky="w")
+            name_label.grid(row=row_num, column=current_column, padx=5, pady=2, sticky="w")
+            current_column += 1
             
-            # Country
-            country = player.get('country', {}).get('iso_code', 'N/A')
-            country_label = ctk.CTkLabel(self.rankings_frame, text=country)
-            country_label.grid(row=i, column=2, padx=5, pady=2, sticky="w")
+            # Country flag and code
+            country = player.get('country', {})
+            country_code = str(country.get('iso_code', '')).lower()
+            flag_path = os.path.join('flags', f'{country_code}.png')
             
-            # Game info
+            # If country code is empty or flag doesn't exist, use unknown.png
+            if not country_code or not os.path.exists(flag_path):
+                flag_path = os.path.join('flags', 'unknown.png')
+                
+            try:
+                flag_img = Image.open(flag_path)
+                flag_img = flag_img.resize((24, 16), Image.Resampling.LANCZOS)
+                flag_photo = ImageTk.PhotoImage(flag_img)
+                flag_label = ctk.CTkLabel(self.rankings_frame, image=flag_photo, text="")
+                flag_label.image = flag_photo  # Keep a reference
+                flag_label.grid(row=row_num, column=current_column, padx=5, pady=2)
+            except Exception as e:
+                # Fallback to text if image fails to load
+                flag_label = ctk.CTkLabel(self.rankings_frame, text=country_code.upper())
+                flag_label.grid(row=row_num, column=current_column, padx=5, pady=2, sticky="w")
+            current_column += 1
+            
+            # Rank image (from API response)
             game_info = player.get('gameinfo', {}).get('kof2002', {})
+            rank_value = game_info.get('rank', 1)  # Get rank from game info
+            rank_img_path = os.path.join('rank', f'rank{rank_value}.png')
             
-            # ELO
-            elo = game_info.get('elo', 'N/A')
-            elo_label = ctk.CTkLabel(self.rankings_frame, text=str(elo))
-            elo_label.grid(row=i, column=3, padx=5, pady=2, sticky="w")
+            try:
+                rank_img = Image.open(rank_img_path)
+                rank_img = rank_img.resize((24, 24), Image.Resampling.LANCZOS)
+                rank_photo = ImageTk.PhotoImage(rank_img)
+                rank_img_label = ctk.CTkLabel(self.rankings_frame, image=rank_photo, text="")
+                rank_img_label.image = rank_photo  # Keep a reference
+                rank_img_label.grid(row=row_num, column=current_column, padx=5, pady=2)
+            except Exception as e:
+                # Fallback to text if image fails to load
+                rank_img_label = ctk.CTkLabel(self.rankings_frame, text=str(rank_value))
+                rank_img_label.grid(row=row_num, column=current_column, padx=5, pady=2, sticky="w")
+            current_column += 1
             
             # Matches
+            game_info = player.get('gameinfo', {}).get('kof2002', {})
             matches = game_info.get('num_matches', 'N/A')
             matches_label = ctk.CTkLabel(self.rankings_frame, text=str(matches))
-            matches_label.grid(row=i, column=4, padx=5, pady=2, sticky="w")
+            matches_label.grid(row=row_num, column=current_column, padx=5, pady=2, sticky="w")
+            current_column += 1
             
             # Time played
             time_played = game_info.get('time_played', 0)
@@ -399,13 +433,10 @@ class FCRankApp(ctk.CTk):
             else:
                 time_text = 'N/A'
             time_label = ctk.CTkLabel(self.rankings_frame, text=time_text)
-            time_label.grid(row=i, column=5, padx=5, pady=2, sticky="w")
-        
-        # Update pagination
-        total_pages = (len(self.rankings_data) + self.page_size - 1) // self.page_size
-        self.page_label.configure(text=f"Page {self.current_page + 1} of {total_pages}")
-        self.prev_button.configure(state="normal" if self.current_page > 0 else "disabled")
-        self.next_button.configure(state="normal" if self.current_page < total_pages - 1 else "disabled")
+            time_label.grid(row=row_num, column=current_column, padx=5, pady=2, sticky="w")
+            
+        # Update navigation frame
+        self.update_navigation_frame()
 
     def search_player(self, username=None):
         if username is None:
@@ -468,6 +499,7 @@ class FCRankApp(ctk.CTk):
                             return search_in_rankings(offset + limit, limit)
                         
                         return False  # Player not found in any page
+
                     
                     return False  # API error
                 
