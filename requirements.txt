@@ -1,8 +1,8 @@
 customtkinter==5.2.0
-selenium==4.11.2
+cloudscraper==1.2.71
 requests==2.31.0
 Pillow==10.0.0
-beautifulsoup4==4.12.2
 python-dotenv==1.0.0
-flask==3.0.0
-flask-cors==4.0.0
+pydantic==2.10.3
+pydantic-settings==2.6.1
+structlog==23.2.0

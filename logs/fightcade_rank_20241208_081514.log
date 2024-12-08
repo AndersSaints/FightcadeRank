@@ -1,0 +1,21 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T08:15:14.719993Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:15:14.809954Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:15:19.567514Z"}
+{"offset": 0, "limit": 15, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:15:19.567514Z"}
+{"offset": 15, "limit": 15, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:15:49.974941Z"}
+{"offset": 30, "limit": 15, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:16:20.220035Z"}
+{"offset": 45, "limit": 15, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:16:50.429306Z"}
+{"offset": 60, "limit": 15, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:17:20.855333Z"}
+{"page": 1, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:17:51.328920Z"}
+{"page": 2, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:00.273682Z"}
+{"page": 3, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:01.309941Z"}
+{"page": 4, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:02.235873Z"}
+{"page": 5, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:03.216396Z"}
+{"page": 4, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:05.890499Z"}
+{"page": 3, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:06.360974Z"}
+{"page": 2, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:06.860204Z"}
+{"page": 1, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:07.340751Z"}
+{"page": 2, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:09.078641Z"}
+{"page": 3, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:10.009075Z"}
+{"page": 4, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:10.863426Z"}
+{"page": 5, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:18:12.402059Z"}

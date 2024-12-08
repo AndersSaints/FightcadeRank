@@ -1,0 +1,8 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T07:53:24.846975Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:53:24.960836Z"}
+{"page": 1, "total_pages": 0, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:53:34.309321Z"}
+{"page": 1, "total_pages": 0, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:53:35.688215Z"}
+{"page": 1, "total_pages": 0, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:53:36.521245Z"}
+{"page": 1, "total_pages": 0, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:53:37.157723Z"}
+{"page": 1, "total_pages": 0, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:53:37.548087Z"}
+{"page": 1, "total_pages": 0, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:53:37.918894Z"}

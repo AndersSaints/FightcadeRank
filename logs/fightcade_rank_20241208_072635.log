@@ -1,0 +1,28 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T07:26:35.973530Z"}
+{"cache_age": 806.8020732402802, "event": "cache_expired", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:36.869941Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:36.925593Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:26:38.974957Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:26:43.730157Z"}
+{"message": "Checking if player exists...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:43.733141Z"}
+{"username": "andy v", "event": "Fetching user information", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:43.733141Z"}
+{"message": "Player found, searching for ranking...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:43.773645Z"}
+{"event": "cache_invalid", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:43.774645Z"}
+{"message": "Searching...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:43.774645Z"}
+{"offset": 0, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:43.774645Z"}
+{"event": "cache_expired_clearing", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:44.190201Z"}
+{"new_count": 100, "total_count": 100, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:44.191228Z"}
+{"players_count": 100, "last_offset": 100, "event": "cache_saved", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:44.195778Z"}
+{"message": "Searching...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:47.196548Z"}
+{"offset": 100, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:47.196548Z"}
+{"new_count": 100, "total_count": 200, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:47.630471Z"}
+{"players_count": 200, "last_offset": 200, "event": "cache_saved", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:47.636285Z"}
+{"message": "Searching...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:50.637272Z"}
+{"offset": 200, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:50.637799Z"}
+{"new_count": 100, "total_count": 300, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:50.950223Z"}
+{"players_count": 300, "last_offset": 300, "event": "cache_saved", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:50.957856Z"}
+{"message": "Searching...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:53.958581Z"}
+{"offset": 300, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:53.958581Z"}
+{"new_count": 99, "total_count": 399, "event": "players_added_to_cache", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:54.264251Z"}
+{"players_count": 399, "last_offset": 400, "event": "cache_saved", "logger": "src.cache", "level": "info", "timestamp": "2024-12-08T07:26:54.274397Z"}
+{"message": "Found player at rank 357", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:26:54.274397Z"}
+{"page": 1, "total_pages": 1, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:26:54.290102Z"}

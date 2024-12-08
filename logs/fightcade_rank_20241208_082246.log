@@ -1,0 +1,19 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T08:22:46.906587Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:22:47.010771Z"}
+{"page": 0, "event": "fetching_rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:52.861131Z"}
+{"offset": 0, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:52.861131Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:52.913201Z"}
+{"page": 1, "total_pages": 7, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:22:53.030224Z"}
+{"page": 1, "event": "fetching_rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:53.449975Z"}
+{"offset": 100, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:53.449975Z"}
+{"page": 1, "total_pages": 14, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:22:53.689534Z"}
+{"page": 2, "event": "fetching_rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:53.996761Z"}
+{"offset": 200, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:53.996761Z"}
+{"page": 1, "total_pages": 20, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:22:54.225970Z"}
+{"page": 3, "event": "fetching_rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:54.533877Z"}
+{"offset": 300, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:54.533877Z"}
+{"page": 1, "total_pages": 27, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:22:54.761009Z"}
+{"page": 4, "event": "fetching_rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:55.069583Z"}
+{"offset": 400, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:22:55.069583Z"}
+{"page": 1, "total_pages": 34, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:22:55.295597Z"}
+{"page": 1, "total_pages": 34, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:22:55.789840Z"}

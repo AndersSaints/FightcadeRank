@@ -1,0 +1,14 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T08:20:02.059078Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:20:02.152646Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:20:07.445990Z"}
+{"offset": 0, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:20:07.445990Z"}
+{"page": 1, "total_pages": 1, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:20:09.382677Z"}
+{"offset": 100, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:20:09.388319Z"}
+{"page": 1, "total_pages": 2, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:20:12.697933Z"}
+{"offset": 200, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:20:12.698932Z"}
+{"page": 1, "total_pages": 3, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:20:15.825955Z"}
+{"offset": 300, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:20:17.607400Z"}
+{"page": 1, "total_pages": 4, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:20:19.958093Z"}
+{"offset": 400, "limit": 100, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:20:19.959093Z"}
+{"page": 1, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:20:23.040912Z"}
+{"page": 1, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:20:24.380054Z"}

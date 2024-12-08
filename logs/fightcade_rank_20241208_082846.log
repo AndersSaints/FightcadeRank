@@ -1,0 +1,11 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T08:28:46.272839Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:28:46.367485Z"}
+{"offset": 0, "limit": 75, "event": "fetching_rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:28:51.156510Z"}
+{"offset": 0, "limit": 75, "event": "Searching rankings", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:28:51.156510Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T08:28:51.213154Z"}
+{"page": 1, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:28:51.721616Z"}
+{"page": 1, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:28:52.413557Z"}
+{"page": 2, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:28:57.871627Z"}
+{"page": 3, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:28:58.781227Z"}
+{"page": 4, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:28:59.267525Z"}
+{"page": 5, "total_pages": 5, "event": "rankings_displayed", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T08:28:59.751900Z"}

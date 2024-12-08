@@ -1,0 +1,10 @@
+{"event": "Starting FightcadeRank application", "logger": "__main__", "level": "info", "timestamp": "2024-12-08T07:41:16.395410Z"}
+{"event": "ui_initialized", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:41:16.490248Z"}
+{"username": "andy v", "event": "search_started", "logger": "src.ui", "level": "info", "timestamp": "2024-12-08T07:41:29.104527Z"}
+{"status_code": 200, "event": "Session initialized successfully", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:41:29.206420Z"}
+{"message": "Checking if player exists...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:41:29.206420Z"}
+{"username": "andy v", "event": "Fetching user information", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:41:29.207421Z"}
+{"message": "Player found, searching for ranking...", "event": "Search progress update", "logger": "src.api", "level": "info", "timestamp": "2024-12-08T07:41:29.540361Z"}
+{"player": "andy v", "error": "'PlayerCache' object has no attribute 'search_player'", "event": "Search failed", "logger": "src.api", "level": "error", "timestamp": "2024-12-08T07:41:29.540361Z"}
+{"error": "'PlayerCache' object has no attribute 'search_player'", "event": "search_error", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T07:41:29.541319Z"}
+{"message": "'PlayerCache' object has no attribute 'search_player'", "event": "error_displayed", "logger": "src.ui", "level": "error", "timestamp": "2024-12-08T07:41:29.541913Z"}
