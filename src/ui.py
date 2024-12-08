@@ -99,8 +99,6 @@ class FCRankApp(ctk.CTk):
         self.rankings_data = []
         self.current_page = 0
         self.total_players = 0
-        self.sort_column = None
-        self.sort_ascending = True
         
         # Initialize image caches
         self.flag_images = {}
@@ -250,41 +248,56 @@ class FCRankApp(ctk.CTk):
         content.grid_columnconfigure(0, weight=1)
         content.grid_rowconfigure(1, weight=1)
         
-        # Table headers with sorting
+        # Table headers
         headers = [
-            ("Rank", "rank"),
-            ("ELO", "elo"),
-            ("Player", "name"),
-            ("Country", "country"),
-            ("Matches", "matches"),
-            ("Wins", "wins"),
-            ("Losses", "losses"),
-            ("Win Rate", "winrate"),
-            ("Time (hrs)", "time")
+            "Rank",
+            "ELO",
+            "Player",
+            "Country",
+            "Matches",
+            "Wins",
+            "Losses",
+            "Win Rate",
+            "Time (hrs)"
         ]
+
+        # Configure column widths
+        column_widths = {
+            0: 60,  # Rank
+            1: 60,  # ELO
+            2: 200, # Player
+            3: 80,  # Country
+            4: 80,  # Matches
+            5: 80,  # Wins
+            6: 80,  # Losses
+            7: 100, # Win Rate
+            8: 100  # Time
+        }
         
         header_frame = ctk.CTkFrame(content)
         header_frame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         
-        for i, (header, key) in enumerate(headers):
-            frame = ctk.CTkFrame(header_frame)
-            frame.grid(row=0, column=i, sticky="ew", padx=2)
-            frame.grid_columnconfigure(0, weight=1)
-            
+        # Configure header columns
+        for i in range(len(headers)):
+            header_frame.grid_columnconfigure(i, weight=0, minsize=column_widths[i])
+        
+        # Create headers
+        for i, header in enumerate(headers):
             label = ctk.CTkLabel(
-                frame,
+                header_frame,
                 text=header,
                 font=("Helvetica", 12, "bold"),
-                cursor="hand2"
+                width=column_widths[i]
             )
-            label.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
-            label.bind("<Button-1>", lambda e, k=key: self._sort_rankings(k))
-            
-            self._add_tooltip(label, f"Click to sort by {header}")
+            label.grid(row=0, column=i, sticky="ew", padx=5, pady=5)
         
         # Results frame with scrollbar
         self.results_frame = ctk.CTkScrollableFrame(content)
         self.results_frame.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
+        
+        # Configure results frame columns
+        for i in range(len(headers)):
+            self.results_frame.grid_columnconfigure(i, weight=0, minsize=column_widths[i])
         
         # Navigation frame
         nav_frame = ctk.CTkFrame(content)
@@ -398,13 +411,7 @@ class FCRankApp(ctk.CTk):
         start_idx = self.current_page * settings.PAGE_SIZE
         page_data = self.rankings_data[start_idx:start_idx + settings.PAGE_SIZE]
         
-        # Create headers
-        headers = ["Rank", "ELO", "Player", "Country", "Matches", "Wins", "Losses", "Win Rate", "Time (hrs)"]
-        for j, text in enumerate(headers):
-            label = ctk.CTkLabel(self.results_frame, text=text, font=("Helvetica", 12, "bold"))
-            label.grid(row=0, column=j, sticky="ew", padx=5, pady=5)
-        
-        for i, player in enumerate(page_data, 1):
+        for i, player in enumerate(page_data):
             # Use the found_rank from search result instead of API rank
             rank = player.get('found_rank', player.get('rank', 0))
             
@@ -420,48 +427,44 @@ class FCRankApp(ctk.CTk):
             time_played = round(game_info.get('time_played', 0) / 3600, 1)  # Convert to hours
             win_rate = (wins / matches) if matches > 0 else 0
             
-            # Create rank label
-            rank_label = ctk.CTkLabel(self.results_frame, text=str(rank))
+            # Create rank label with fixed width
+            rank_label = ctk.CTkLabel(self.results_frame, text=str(rank), width=60)
             rank_label.grid(row=i, column=0, sticky="ew", padx=5, pady=2)
             
-            # Create ELO rank image label
+            # Create ELO rank image label with fixed width
             elo_rank = min(6, max(1, (rank // 100) + 1))  # Convert rank to ELO tier (1-6)
             rank_image = self._load_rank_image(elo_rank)
             if rank_image:
-                elo_label = ctk.CTkLabel(self.results_frame, text="", image=rank_image)
+                elo_label = ctk.CTkLabel(self.results_frame, text="", image=rank_image, width=60)
                 elo_label.grid(row=i, column=1, sticky="ew", padx=5, pady=2)
                 self._add_tooltip(elo_label, f"Rank Tier {elo_rank}")
             
-            # Create player name label
-            name_label = ctk.CTkLabel(self.results_frame, text=player.get('name', ''))
+            # Create player name label with fixed width
+            name_label = ctk.CTkLabel(self.results_frame, text=player.get('name', ''), width=200)
             name_label.grid(row=i, column=2, sticky="ew", padx=5, pady=2)
             
-            # Create country flag label
+            # Create country flag label with fixed width
+            flag_label = ctk.CTkLabel(self.results_frame, text="", width=80)
             if country_code:
                 flag_image = self._load_flag_image(country_code)
                 if flag_image:
-                    flag_label = ctk.CTkLabel(self.results_frame, text="", image=flag_image)
-                    flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
+                    flag_label.configure(image=flag_image)
                     self._add_tooltip(flag_label, country.get('name', country_code.upper()))
                 else:
-                    # Fallback to text if flag not found
-                    flag_label = ctk.CTkLabel(self.results_frame, text=country_code.upper())
-                    flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
-            else:
-                flag_label = ctk.CTkLabel(self.results_frame, text="")
-                flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
+                    flag_label.configure(text=country_code.upper())
+            flag_label.grid(row=i, column=3, sticky="ew", padx=5, pady=2)
             
-            # Add remaining stats
+            # Add remaining stats with fixed widths
             stats = [
-                str(matches),
-                str(wins),
-                str(losses),
-                f"{win_rate:.2%}",
-                str(time_played)
+                (str(matches), 80),
+                (str(wins), 80),
+                (str(losses), 80),
+                (f"{win_rate:.2%}", 100),
+                (str(time_played), 100)
             ]
             
-            for j, text in enumerate(stats, 4):
-                label = ctk.CTkLabel(self.results_frame, text=text)
+            for j, (text, width) in enumerate(stats, 4):
+                label = ctk.CTkLabel(self.results_frame, text=text, width=width)
                 label.grid(row=i, column=j, sticky="ew", padx=5, pady=2)
         
         # Update navigation
@@ -511,42 +514,6 @@ class FCRankApp(ctk.CTk):
         self.current_page = 0
         self.display_rankings()
         self.update_progress("")
-    
-    def _sort_rankings(self, key):
-        """Sort rankings by the specified key."""
-        if not self.rankings_data:
-            return
-            
-        if self.sort_column == key:
-            self.sort_ascending = not self.sort_ascending
-        else:
-            self.sort_column = key
-            self.sort_ascending = True
-        
-        def get_sort_key(player):
-            if key == 'rank':
-                return int(player.get('rank', 0))
-            elif key == 'name':
-                return player.get('name', '').lower()
-            elif key == 'country':
-                country = player.get('country', {})
-                return country.get('iso_code', '') if isinstance(country, dict) else ''
-            elif key in ['matches', 'wins', 'losses']:
-                return int(player.get('gameinfo', {}).get('kof2002', {}).get(key, 0))
-            elif key == 'winrate':
-                game_info = player.get('gameinfo', {}).get('kof2002', {})
-                wins = game_info.get('wins', 0)
-                matches = game_info.get('num_matches', 0)
-                return (wins / matches) if matches > 0 else 0
-            elif key == 'time':
-                return float(player.get('gameinfo', {}).get('kof2002', {}).get('time_played', 0))
-            return 0
-        
-        self.rankings_data.sort(
-            key=get_sort_key,
-            reverse=not self.sort_ascending
-        )
-        self.display_rankings()
     
     def _add_tooltip(self, widget, text):
         """Add tooltip to widget."""
