@@ -292,7 +292,8 @@ class FCRankApp(ctk.CTk):
             "Wins",
             "Losses",
             "Win Rate",
-            "Time (hrs)"
+            "Time (hrs)",
+            "On Page"
         ]
 
         # Configure column widths
@@ -305,7 +306,8 @@ class FCRankApp(ctk.CTk):
             5: 80,  # Wins
             6: 80,  # Losses
             7: 100, # Win Rate
-            8: 100  # Time
+            8: 100, # Time
+            9: 60   # On Page
         }
         
         header_frame = ctk.CTkFrame(content)
@@ -493,7 +495,8 @@ class FCRankApp(ctk.CTk):
                 (str(wins), 80),
                 (str(losses), 80),
                 (f"{win_rate:.2%}", 100),
-                (str(time_played), 100)
+                (str(time_played), 100),
+                (str((rank - 1) // 15 + 1), 60)  # Calculate which page the player is on
             ]
             
             for j, (text, width) in enumerate(stats, 4):
