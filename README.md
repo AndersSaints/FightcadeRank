@@ -130,9 +130,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Thanks to the Fightcade team for their amazing platform
 - The KOF 2002 community for their continued support
-- All contributors who have helped improve this project
 
 ---
 <div align="center">
-Made with ❤️ by the FightcadeRank Team
+Made with ❤️ by <a href="https://github.com/AndersSaints">AndersSaints</a>
 </div>
