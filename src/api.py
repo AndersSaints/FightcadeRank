@@ -109,8 +109,15 @@ class FightcadeAPI:
                    limit=limit)
         return self._make_request("POST", "", data=data)
     
-    def search_player(self, username: str, progress_callback=None) -> Tuple[Optional[Dict], int]:
-        """Search for a player using cache and API calls with parallel processing."""
+    def search_player(self, username: str, progress_callback=None, load_replays=True) -> Tuple[Optional[Dict], int]:
+        """
+        Search for a player using cache and API calls with parallel processing.
+        
+        Args:
+            username: Player name to search for
+            progress_callback: Optional callback function to report progress
+            load_replays: Whether to load replay stats (defaults to True)
+        """
         from concurrent.futures import ThreadPoolExecutor, as_completed
         import threading
         
@@ -144,18 +151,19 @@ class FightcadeAPI:
             if cached_player:
                 update_progress(f"Found player in cache at rank {start_offset + 1}")
                 
-                # Get player replays and calculate stats
-                update_progress(f"Fetching {total_ranked_matches} replays...")
-                replays = self.get_all_player_replays(
-                    username, 
-                    max_replays=total_ranked_matches,
-                    progress_callback=progress_callback
-                )
-                if replays:
-                    stats = ReplayStats()
-                    replay_stats = stats.calculate_stats(replays, username)
-                    if replay_stats:
-                        cached_player['replay_stats'] = replay_stats
+                # Get player replays and calculate stats only if requested
+                if load_replays:
+                    update_progress(f"Fetching {total_ranked_matches} replays...")
+                    replays = self.get_all_player_replays(
+                        username, 
+                        max_replays=total_ranked_matches,
+                        progress_callback=progress_callback
+                    )
+                    if replays:
+                        stats = ReplayStats()
+                        replay_stats = stats.calculate_stats(replays, username)
+                        if replay_stats:
+                            cached_player['replay_stats'] = replay_stats
                 
                 return cached_player, start_offset
             
@@ -239,15 +247,16 @@ class FightcadeAPI:
                 rank = found_offset + 1
                 update_progress(f"Found player at rank {rank}")
                 
-                # Get player replays and calculate stats
-                update_progress("Fetching player replays...")
-                replays = self.get_player_replays(username)
-                if replays and replays.get('res') == 'OK':
-                    replay_results = replays.get('results', {}).get('results', [])
-                    stats = ReplayStats()
-                    replay_stats = stats.calculate_stats(replay_results, username)
-                    if replay_stats:
-                        found_player['replay_stats'] = replay_stats
+                # Get player replays and calculate stats only if requested
+                if load_replays:
+                    update_progress("Fetching player replays...")
+                    replays = self.get_player_replays(username)
+                    if replays and replays.get('res') == 'OK':
+                        replay_results = replays.get('results', {}).get('results', [])
+                        stats = ReplayStats()
+                        replay_stats = stats.calculate_stats(replay_results, username)
+                        if replay_stats:
+                            found_player['replay_stats'] = replay_stats
                 
                 return found_player, found_offset
             
@@ -420,7 +429,7 @@ class FightcadeAPI:
                         start_offset = batch_num * settings.REPLAY_BATCH_SIZE
                         if start_offset >= new_matches:
                             break
-                            
+                             
                         futures.append(
                             executor.submit(fetch_batch, start_offset, batch_num)
                         )
@@ -429,11 +438,11 @@ class FightcadeAPI:
                     for future in as_completed(futures):
                         if search_complete.is_set():
                             break
-                            
+                             
                         result = future.result()
                         if result:
                             new_replays.extend(result)
-                            
+                             
                             if len(new_replays) >= new_matches:
                                 search_complete.set()
                                 new_replays = new_replays[:new_matches]
@@ -512,7 +521,7 @@ class FightcadeAPI:
                     start_offset = batch_num * settings.REPLAY_BATCH_SIZE
                     if start_offset >= max_replays:
                         break
-                        
+                         
                     futures.append(
                         executor.submit(fetch_batch, start_offset, batch_num)
                     )
@@ -521,11 +530,11 @@ class FightcadeAPI:
                 for future in as_completed(futures):
                     if search_complete.is_set():
                         break
-                        
+                         
                     result = future.result()
                     if result:
                         all_replays.extend(result)
-                        
+                         
                         if len(all_replays) >= max_replays:
                             search_complete.set()
                             all_replays = all_replays[:max_replays]

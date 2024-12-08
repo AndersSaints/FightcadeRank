@@ -9,7 +9,7 @@ import time
 from PIL import Image, ImageTk
 from pathlib import Path
 from .config import settings
-from .api import FightcadeAPI
+from .api import FightcadeAPI, ReplayStats
 from .logger import setup_logging
 
 logger = setup_logging()
@@ -386,6 +386,20 @@ class FCRankApp(ctk.CTk):
             width=100
         )
         self.next_button.pack(side="left", padx=5)
+
+        # Add a separator
+        separator = ctk.CTkFrame(nav_frame, width=2, height=32)
+        separator.pack(side="left", padx=20)
+
+        # Load Stats button
+        self.load_stats_button = ctk.CTkButton(
+            nav_frame,
+            text="Load Stats",
+            command=self.load_player_stats,
+            width=100,
+            height=32
+        )
+        self.load_stats_button.pack(side="left", padx=5)
     
     def _create_status_bar(self):
         """Create the status bar."""
@@ -428,9 +442,11 @@ class FCRankApp(ctk.CTk):
         def search_task():
             """Search task to run in separate thread."""
             try:
+                # Only fetch basic player info without replay stats
                 player, offset = self.api.search_player(
                     username,
-                    lambda msg: self.after(0, self.update_progress, msg)
+                    progress_callback=lambda msg: self.after(0, self.update_progress, msg),
+                    load_replays=False  # Don't fetch replay stats immediately
                 )
                 
                 if player:
@@ -736,3 +752,73 @@ class FCRankApp(ctk.CTk):
         except Exception as e:
             logger.error("Failed to clear cache", error=str(e))
             self.show_error(f"Failed to clear cache: {str(e)}")
+
+    def load_player_stats(self):
+        """Load player stats for all displayed players."""
+        if not self.rankings_data:
+            self.show_error("No players to load stats for")
+            return
+            
+        # Disable the load stats button during loading
+        self.load_stats_button.configure(state="disabled")
+        self.spinner.start()
+        
+        def load_stats_task():
+            try:
+                self.update_progress("Loading player stats...")
+                
+                # Get current page data
+                start_idx = self.current_page * 15
+                page_data = self.rankings_data[start_idx:start_idx + 15]
+                
+                # Load stats for each player on the current page
+                for i, player in enumerate(page_data):
+                    username = player.get('name')
+                    if not username:
+                        continue
+                        
+                    self.update_progress(f"Loading stats for {username}...")
+                    
+                    try:
+                        # Fetch replay stats for the player
+                        replay_response = self.api.get_player_replays(username)
+                        
+                        # Update player data with stats
+                        if replay_response and replay_response.get('res') == 'OK':
+                            # Extract replay results
+                            replay_results = replay_response.get('results', {}).get('results', [])
+                            
+                            # Calculate stats from replay results
+                            stats_calculator = ReplayStats()
+                            replay_stats = stats_calculator.calculate_stats(replay_results, username)
+                            
+                            if replay_stats:
+                                # Update player data with calculated stats
+                                player['replay_stats'] = replay_stats
+                                # Update the display immediately for each player
+                                self.after(0, self.display_rankings)
+                        
+                        # Small delay between requests
+                        time.sleep(settings.REQUEST_DELAY)
+                        
+                    except Exception as e:
+                        logger.error(f"Failed to load stats for {username}", error=str(e))
+                        continue
+                
+                self.after(0, lambda: self.update_progress("Stats loaded successfully"))
+                
+            except Exception as e:
+                logger.error("stats_loading_error", error=str(e))
+                self.after(0, lambda: self.show_error(f"Failed to load stats: {str(e)}"))
+                
+            finally:
+                # Re-enable the load stats button
+                self.after(0, lambda: self.load_stats_button.configure(state="normal"))
+                self.after(0, self.spinner.stop)
+        
+        # Start loading stats in a separate thread
+        thread = threading.Thread(target=load_stats_task)
+        thread.daemon = True
+        thread.start()
+        
+        logger.info("stats_loading_started")
