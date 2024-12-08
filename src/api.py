@@ -109,8 +109,11 @@ class FightcadeAPI:
         return self._make_request("POST", "", data=data)
     
     def search_player(self, username: str, progress_callback=None) -> Tuple[Optional[Dict], int]:
-        """Search for a player using cache and API calls."""
-        self._ensure_initialized()  # Initialize only when needed
+        """Search for a player using cache and API calls with parallel processing."""
+        from concurrent.futures import ThreadPoolExecutor, as_completed
+        import threading
+        
+        self._ensure_initialized()
         if not username:
             raise ValueError("Player name cannot be empty")
         
@@ -131,47 +134,93 @@ class FightcadeAPI:
             
             update_progress("Player found, searching for ranking...")
             
-            # Check cache
+            # Check cache first
             cached_player, start_offset = self.cache.search_player(username)
             if cached_player:
                 update_progress(f"Found player in cache at rank {start_offset + 1}")
                 return cached_player, start_offset
             
-            # Start searching from last cached position
-            offset = start_offset
-            while offset < settings.MAX_SEARCH_OFFSET:
-                update_progress("Searching...")
-                
+            # Thread-safe variables
+            found_player = None
+            found_offset = None
+            search_complete = threading.Event()
+            
+            def search_batch(start_offset: int, batch_number: int) -> Optional[Tuple[Dict, int]]:
+                """Search a batch of players."""
+                if search_complete.is_set():
+                    return None
+                    
                 try:
-                    response = self.search_rankings(offset)
+                    current_page = (start_offset // settings.BATCH_SIZE) + 1
+                    update_progress(f"Searching page {current_page}...")
+                    
+                    response = self.search_rankings(start_offset)
                     if response.get('res') != 'OK':
                         if 'rate' in str(response.get('error', '')).lower():
-                            update_progress("Rate limited, waiting...")
                             time.sleep(settings.RATE_LIMIT_DELAY)
-                            continue
-                        break
+                            return None
+                        return None
                     
                     players = response.get('results', {}).get('results', [])
                     if not players:
-                        break
+                        return None
                     
                     # Add to cache
-                    self.cache.add_players(players, offset)
+                    self.cache.add_players(players, start_offset)
                     
                     # Check this batch
                     for i, player in enumerate(players):
+                        if search_complete.is_set():
+                            return None
                         if player.get('name', '').lower() == username.lower():
-                            rank = offset + i + 1
-                            update_progress(f"Found player at rank {rank}")
-                            return player, offset + i
+                            return (player, start_offset + i)
                     
-                    offset += settings.BATCH_SIZE
                     time.sleep(settings.REQUEST_DELAY)
+                    return None
                     
                 except Exception as e:
-                    update_progress(f"Error during search: {str(e)}")
-                    time.sleep(settings.ERROR_DELAY)
-                    continue
+                    logger.error("Batch search failed", 
+                               batch=batch_number, 
+                               error=str(e))
+                    return None
+            
+            # Calculate batches for parallel processing
+            max_workers = 5  # Maximum concurrent requests
+            batch_size = settings.BATCH_SIZE
+            total_batches = settings.MAX_SEARCH_OFFSET // batch_size
+            
+            update_progress(f"Starting parallel search with {max_workers} workers...")
+            
+            with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                # Submit all batches
+                future_to_batch = {
+                    executor.submit(search_batch, i * batch_size, i): i 
+                    for i in range(total_batches)
+                }
+                
+                try:
+                    for future in as_completed(future_to_batch):
+                        batch_num = future_to_batch[future]
+                        try:
+                            result = future.result()
+                            if result:
+                                player, offset = result
+                                found_player = player
+                                found_offset = offset
+                                search_complete.set()
+                                break
+                        except Exception as e:
+                            logger.error("Future failed", 
+                                       batch=batch_num, 
+                                       error=str(e))
+                finally:
+                    # Make sure to signal completion to stop other threads
+                    search_complete.set()
+            
+            if found_player:
+                rank = found_offset + 1
+                update_progress(f"Found player at rank {rank}")
+                return found_player, found_offset
             
             update_progress("Player not found in rankings")
             return None, 0
