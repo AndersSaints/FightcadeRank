@@ -466,12 +466,11 @@ class FCRankApp(ctk.CTk):
             rank_label.grid(row=i, column=0, sticky="ew", padx=5, pady=2)
             
             # Create ELO rank image label with fixed width
-            elo_rank = min(6, max(1, (rank // 100) + 1))  # Convert rank to ELO tier (1-6)
-            rank_image = self._load_rank_image(elo_rank)
+            rank_image = self._load_rank_image(game_info.get('rank', 0))
             if rank_image:
                 elo_label = ctk.CTkLabel(self.results_frame, text="", image=rank_image, width=60)
                 elo_label.grid(row=i, column=1, sticky="ew", padx=5, pady=2)
-                self._add_tooltip(elo_label, f"Rank Tier {elo_rank}")
+                self._add_tooltip(elo_label, f"Rank {game_info.get('rank', 0)}")
             
             # Create player name label with fixed width
             name_label = ctk.CTkLabel(self.results_frame, text=player.get('name', ''), width=200)
